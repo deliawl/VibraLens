@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Glosarium HVSR{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span>Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}">Beranda</a>
+    <span>/</span>
+    <span>Glosarium</span>
+  </div>
+</div>
+
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">Referensi Istilah</span>
+    <h1>Glosarium HVSR</h1>
+    <p>Kumpulan istilah penting dalam analisis mikroseismik & HVSR.</p>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="glosarium-search">
+  <i data-lucide="search"></i>
+  <input type="text" id="glosSearch" placeholder="Cari istilah (mis. amplifikasi, PGA, Nakamura)…">
+</div>
+
+<!-- KATEGORI FILTER -->
+<div class="glosarium-categories">
+  <button class="glos-cat-btn active" data-cat="all">Semua</button>
+  <button class="glos-cat-btn" data-cat="parameter">Parameter HVSR</button>
+  <button class="glos-cat-btn" data-cat="instrument">Instrumentasi</button>
+  <button class="glos-cat-btn" data-cat="seismic">Seismologi</button>
+  <button class="glos-cat-btn" data-cat="network">Jaringan & Data</button>
+</div>
+
+<!-- LIST -->
+<div class="glosarium-list" id="glosList">
+  {% set glos = [
+    {"term": "HVSR", "full": "Horizontal-to-Vertical Spectral Ratio", "cat": "parameter",
+     "def": "Metode analisis mikroseismik yang membandingkan spektrum komponen horizontal (N, E) terhadap vertikal (Z) untuk mengestimasi frekuensi dominan dan amplifikasi tanah. Diperkenalkan oleh Nakamura (1989)."},
+    {"term": "f₀", "full": "Frekuensi Dominan", "cat": "parameter",
+     "def": "Frekuensi natural tanah (Hz) di mana kurva HVSR mencapai puncak. Menunjukkan resonansi lapisan sedimen. Nilai rendah (<1 Hz) mengindikasikan sedimen tebal."},
+    {"term": "A₀", "full": "Faktor Amplifikasi", "cat": "parameter",
+     "def": "Nilai maksimum rasio H/V pada frekuensi f₀. Menunjukkan seberapa besar getaran diperkuat dari bedrock ke permukaan. A₀ tinggi = kontras impedansi besar."},
+    {"term": "K_g", "full": "Indeks Kerentanan Seismik Kanai", "cat": "parameter",
+     "def": "Indeks kerentanan seismik yang dihitung dari K_g = A₀² / f₀. Semakin besar nilainya, semakin rentan wilayah terhadap amplifikasi gempa. Klasifikasi: <3 aman, 3-10 sedang, >10 rawan."},
+    {"term": "PGV", "full": "Peak Ground Velocity", "cat": "seismic",
+     "def": "Kecepatan getaran tanah maksimum (mm/s). Parameter utama yang dipantau VibraLens untuk mendeteksi event seismik."},
+    {"term": "PGA", "full": "Peak Ground Acceleration", "cat": "seismic",
+     "def": "Percepatan getaran tanah maksimum (m/s² atau g). Berhubungan dengan gaya yang dialami struktur bangunan saat gempa."},
+    {"term": "RMS", "full": "Root Mean Square", "cat": "seismic",
+     "def": "Nilai efektif sinyal getaran — akar dari rata-rata kuadrat amplitudo. Menggambarkan intensitas rata-rata sinyal."},
+    {"term": "Ambient Noise", "full": "Mikrotremor", "cat": "seismic",
+     "def": "Getaran tanah latar belakang yang selalu ada, berasal dari aktivitas alam (angin, gelombang laut) dan manusia (lalu lintas, mesin). Bahan baku metode HVSR."},
+    {"term": "Microzonasi Seismik", "full": "Seismic Microzonation", "cat": "seismic",
+     "def": "Pembagian wilayah berdasarkan respons tanah terhadap gempa. Digunakan untuk perencanaan tata ruang dan mitigasi bencana."},
+    {"term": "Amplifikasi", "full": "Ground Motion Amplification", "cat": "seismic",
+     "def": "Perkuatan getaran gempa yang terjadi akibat perbedaan sifat lapisan tanah. Tanah lunak cenderung memperkuat getaran lebih besar dibanding batuan keras."},
+    {"term": "Resonansi", "full": "Resonance", "cat": "seismic",
+     "def": "Fenomena di mana getaran diperkuat secara signifikan karena frekuensi sumber sama dengan frekuensi natural tanah/bangunan."},
+    {"term": "Geophone", "full": "", "cat": "instrument",
+     "def": "Sensor yang mengubah getaran tanah menjadi sinyal listrik. Umumnya 3-komponen (Z, N, E) untuk menangkap getaran di tiga arah."},
+    {"term": "Seismograf", "full": "", "cat": "instrument",
+     "def": "Alat pencatat getaran tanah. Kombinasi sensor (geophone/accelerometer) + perekam data + sistem waktu presisi."},
+    {"term": "Accelerometer", "full": "", "cat": "instrument",
+     "def": "Sensor yang mengukur percepatan getaran. Komplementer dengan geophone yang mengukur kecepatan."},
+    {"term": "Sampling Rate", "full": "Laju Sampling", "cat": "instrument",
+     "def": "Jumlah sampel data per detik (Hz). VibraLens menggunakan 100 Hz — sesuai standar SESAME untuk analisis HVSR (minimal 100 Hz)."},
+    {"term": "Kalibrasi", "full": "", "cat": "instrument",
+     "def": "Proses verifikasi dan penyesuaian akurasi sensor. Direkomendasikan setiap 12 bulan atau setelah perbaikan."},
+    {"term": "LoRa", "full": "Long Range", "cat": "network",
+     "def": "Protokol komunikasi nirkabel jarak jauh (hingga 15 km) dengan konsumsi daya rendah. Cocok untuk sensor IoT di area kampus."},
+    {"term": "Gateway", "full": "", "cat": "network",
+     "def": "Perangkat penghubung antara node sensor dengan server. Menerima data dari banyak node LoRa, lalu forward ke server via LTE/WiFi."},
+    {"term": "Node", "full": "", "cat": "network",
+     "def": "Satu unit pemasangan lengkap di lokasi tertentu: geophone + mikrokontroler + modul LoRa + catu daya."},
+    {"term": "Stream Data", "full": "Data Streaming", "cat": "network",
+     "def": "Pengiriman data secara kontinu dan real-time dari sensor ke server, umumnya setiap 10 detik."},
+    {"term": "MiniSEED", "full": "", "cat": "network",
+     "def": "Format standar internasional untuk menyimpan data seismik. Efisien untuk data time-series volume besar."},
+    {"term": "Konno-Ohmachi", "full": "", "cat": "parameter",
+     "def": "Metode smoothing (penghalusan) spektrum yang umum dipakai dalam analisis HVSR. Parameter b=40 adalah standar SESAME."},
+    {"term": "Nakamura", "full": "Yutaka Nakamura", "cat": "seismic",
+     "def": "Peneliti Jepang yang pertama kali mempopulerkan metode HVSR untuk estimasi karakteristik dinamis lapisan tanah (1989)."},
+    {"term": "Kanai", "full": "Kiyoshi Kanai", "cat": "seismic",
+     "def": "Pioneer seismologi teknik Jepang. Mengembangkan indeks kerentanan seismik K_g = A₀²/f₀ yang dipakai untuk microzonasi."},
+    {"term": "SESAME", "full": "Site Effects Assessment Using Ambient Excitations", "cat": "seismic",
+     "def": "Proyek riset Eropa (2004) yang menghasilkan guidelines standar untuk implementasi HVSR. Referensi wajib dalam analisis mikroseismik."}
+  ] %}
+
+  {% for g in glos %}
+  <div class="glos-item" data-cat="{{ g.cat }}" data-search="{{ g.term }} {{ g.full }} {{ g.def }}">
+    <div class="glos-term">
+      <strong>{{ g.term }}</strong>
+      {% if g.full %}<span class="glos-full">{{ g.full }}</span>{% endif %}
+      <span class="glos-cat glos-cat-{{ g.cat }}">
+        {% if g.cat == 'parameter' %}Parameter
+        {% elif g.cat == 'instrument' %}Instrumen
+        {% elif g.cat == 'seismic' %}Seismologi
+        {% else %}Jaringan{% endif %}
+      </span>
+    </div>
+    <div class="glos-def">{{ g.def }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="glos-empty" id="glosEmpty" hidden>
+  <i data-lucide="search-x"></i>
+  <p>Tidak ada istilah yang cocok.</p>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var searchInput = document.getElementById('glosSearch');
+  var catBtns = document.querySelectorAll('.glos-cat-btn');
+  var items = Array.from(document.querySelectorAll('.glos-item'));
+  var emptyEl = document.getElementById('glosEmpty');
+  var currentCat = 'all';
+
+  function applyFilter() {
+    var q = (searchInput.value || '').toLowerCase().trim();
+    var shown = 0;
+
+    items.forEach(function(item) {
+      var matchSearch = !q || item.dataset.search.toLowerCase().includes(q);
+      var matchCat = currentCat === 'all' || item.dataset.cat === currentCat;
+      var visible = matchSearch && matchCat;
+      item.hidden = !visible;
+      if (visible) shown++;
+    });
+
+    emptyEl.hidden = shown > 0;
+  }
+
+  searchInput?.addEventListener('input', applyFilter);
+
+  catBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      catBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentCat = btn.dataset.cat;
+      applyFilter();
+    });
+  });
+})();
+</script>
+{% endblock %}

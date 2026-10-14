@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="VibraLens — Sistem monitoring getaran tanah real-time berbasis IoT dengan analisis HVSR untuk microzonasi seismik. Prodi Geofisika, Universitas Padjadjaran.">
+  <meta name="theme-color" content="#0A0907">
+  <meta name="author" content="Delia Wulandari">
+  <meta property="og:title" content="VibraLens · Monitoring Getaran & Analisis HVSR">
+  <meta property="og:description" content="Sistem pemantauan getaran tanah berbasis IoT dengan analisis HVSR di kawasan Jatinangor, Universitas Padjadjaran.">
+  <meta property="og:type" content="website">
+
+  <title>{% block title %}VibraLens{% endblock %} · VibraLens</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <a href="#mainContent" class="skip-link">Lewati ke konten</a>
+
+  <!-- ===================== TOPBAR ===================== -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" id="menuToggle" aria-label="Buka menu navigasi" type="button">
+        <i data-lucide="menu"></i>
+      </button>
+
+      <a class="brand" href="{{ url_for('beranda') }}">
+        <div class="brand-logo">
+          <i data-lucide="radio-tower"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-name">VibraLens</div>
+          <div class="brand-sub" data-i18n="brand.sub">Prodi Geofisika · Universitas Padjadjaran</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="topbar-right">
+      {% if show_time %}
+        <div class="clock" id="clock">
+          <span class="clock-time">--:--:--</span>
+          <span class="clock-tz">WIB</span>
+        </div>
+      {% endif %}
+
+      <div class="search">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" placeholder="Cari fitur, node, event…" data-i18n-placeholder="search.ph">
+        <kbd class="search-shortcut">Ctrl K</kbd>
+      </div>
+
+      <div class="seg" id="langSeg">
+        <button data-lang="id" class="active" type="button">ID</button>
+        <button data-lang="en" type="button">EN</button>
+      </div>
+
+      <button class="icon-btn" id="themeBtn" aria-label="Ganti tema" title="Ganti tema" type="button">
+        <i data-lucide="moon" id="themeIcon"></i>
+      </button>
+
+      <button class="user-btn" id="userBtn" type="button">
+        <span class="avatar"><i data-lucide="user"></i></span>
+        <span class="user-name" data-i18n="user.login">Masuk</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ===================== DRAWER ===================== -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="drawer" aria-label="Menu navigasi">
+    <div class="drawer-head">
+      <div class="brand-logo">
+        <i data-lucide="radio-tower"></i>
+      </div>
+      <div>
+        <div class="brand-name">VibraLens</div>
+        <div class="brand-sub" data-i18n="brand.sub">Prodi Geofisika · Universitas Padjadjaran</div>
+      </div>
+      <button class="icon-btn drawer-close" id="drawerClose" aria-label="Tutup menu" type="button">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <nav class="drawer-nav">
+      <a href="{{ url_for('beranda') }}" class="drawer-item {% if active is none %}active{% endif %}">
+        <i data-lucide="house"></i>
+        <span data-i18n="nav.home">Beranda</span>
+      </a>
+      {% for key, item in fitur.items() %}
+      <a href="{{ url_for('fitur_page', slug=key) }}"
+         class="drawer-item {% if active == key %}active{% endif %}">
+        <i data-lucide="{{ item.ikon }}"></i>
+        <span data-i18n="fitur.{{ key }}">{{ item.nama_id }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+
+    <div class="drawer-foot">
+      <div class="seg seg-full" id="langSegMobile">
+        <button data-lang="id" class="active" type="button">ID</button>
+        <button data-lang="en" type="button">EN</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main" id="mainContent">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col footer-brand">
+          <div class="footer-brand-head">
+            <div class="brand-logo">
+              <i data-lucide="radio-tower"></i>
+            </div>
+            <div>
+              <div class="brand-name">VibraLens</div>
+              <div class="brand-sub">Monitoring Getaran & Analisis HVSR</div>
+            </div>
+          </div>
+          <p class="footer-desc" data-i18n="footer.desc">
+            Sistem pemantauan getaran tanah berbasis IoT dengan analisis HVSR untuk microzonasi seismik di kawasan Jatinangor.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4 data-i18n="footer.col.product">Produk</h4>
+          <a href="{{ url_for('fitur_page', slug='monitoring') }}" data-i18n="fitur.monitoring">Monitoring Real-Time</a>
+          <a href="{{ url_for('fitur_page', slug='peta') }}" data-i18n="fitur.peta">Peta & Jaringan</a>
+          <a href="{{ url_for('fitur_page', slug='analisis') }}" data-i18n="fitur.analisis">Analisis Sinyal</a>
+          <a href="{{ url_for('katalog') }}" data-i18n="fitur.katalog">Katalog Data</a>
+        </div>
+
+        <div class="footer-col">
+          <h4 data-i18n="footer.col.help">Bantuan</h4>
+          <a href="{{ url_for('panduan') }}" data-i18n="footer.guide">
+            <i data-lucide="book-open"></i> Panduan Pengguna
+          </a>
+          <a href="{{ url_for('glosarium') }}" data-i18n="footer.glossary">
+            <i data-lucide="book-marked"></i> Glosarium HVSR
+          </a>
+          <a href="{{ url_for('referensi') }}" data-i18n="footer.reference">
+            <i data-lucide="file-text"></i> Referensi Ilmiah
+          </a>
+          <a href="{{ url_for('katalog') }}" data-i18n="footer.catalog">
+            <i data-lucide="database"></i> Katalog Data
+          </a>
+        </div>
+
+        <div class="footer-col">
+          <h4 data-i18n="footer.col.contact">Kontak</h4>
+          <a href="mailto:deliawulandari348@gmail.com">
+            <i data-lucide="mail"></i> deliawulandari348@gmail.com
+          </a>
+          <a href="#">
+            <i data-lucide="map-pin"></i> Jatinangor, Sumedang
+          </a>
+          <a href="#">
+            <i data-lucide="graduation-cap"></i> Geofisika Unpad
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2025 VibraLens · Delia Wulandari</span>
+        <span class="footer-links">
+          <a href="#" data-i18n="footer.privacy">Kebijakan Privasi</a>
+          <span>·</span>
+          <a href="#" data-i18n="footer.terms">Syarat & Ketentuan</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================== TOAST ===================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

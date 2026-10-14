@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.nama_id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="back">Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <span data-i18n="fitur.riwayat">{{ meta.nama_id }}</span>
+  </div>
+</div>
+
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">History & Export</span>
+    <h1>Riwayat & Ekspor</h1>
+    <p>Telusuri data historis node berdasarkan rentang tanggal. Ekspor ke CSV untuk analisis lanjutan.</p>
+  </div>
+</div>
+
+<!-- FILTER -->
+<div class="analisis-control">
+  <div class="analisis-control-left">
+    <label>Node</label>
+    <select id="riwayatNode" class="analisis-select">
+      {% for n in nodes %}
+      <option value="{{ n.id }}">{{ n.kode }} · {{ n.nama }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="analisis-control-left">
+    <label>Dari Tanggal</label>
+    <input type="date" id="riwayatFrom" class="analisis-select">
+  </div>
+  <div class="analisis-control-left">
+    <label>Sampai Tanggal</label>
+    <input type="date" id="riwayatTo" class="analisis-select">
+  </div>
+  <button id="riwayatApply" class="btn-primary" type="button">
+    <i data-lucide="search"></i>
+    <span>Cari</span>
+  </button>
+  <button id="riwayatExport" class="btn-ghost-dark" type="button">
+    <i data-lucide="download"></i>
+    <span>Export CSV</span>
+  </button>
+</div>
+
+<!-- TABLE -->
+<div class="riwayat-table-wrapper">
+  <div class="riwayat-table-head">
+    <span id="riwayatCount" class="panel-meta">100 record terakhir</span>
+  </div>
+  <div class="riwayat-table-scroll">
+    <table class="riwayat-table" id="riwayatTable">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Node</th>
+          <th>PGV <span class="unit">mm/s</span></th>
+          <th>PGA <span class="unit">m/s²</span></th>
+          <th>f_dom <span class="unit">Hz</span></th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="riwayatBody">
+        {% for r in readings %}
+        <tr>
+          <td class="mono">{{ r.timestamp[:19] }}</td>
+          <td><strong>{{ r.node_id }}</strong></td>
+          <td class="mono">{{ "%.3f"|format(r.pgv) if r.pgv else '—' }}</td>
+          <td class="mono">{{ "%.4f"|format(r.pga) if r.pga else '—' }}</td>
+          <td class="mono">{{ "%.2f"|format(r.freq_dom) if r.freq_dom else '—' }}</td>
+          <td>
+            <span class="katalog-status status-{{ r.status }}">{{ r.status|upper }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var btnApply = document.getElementById('riwayatApply');
+  var btnExport = document.getElementById('riwayatExport');
+  var selNode = document.getElementById('riwayatNode');
+  var dtFrom = document.getElementById('riwayatFrom');
+  var dtTo = document.getElementById('riwayatTo');
+  var tbody = document.getElementById('riwayatBody');
+  var countEl = document.getElementById('riwayatCount');
+
+  btnApply?.addEventListener('click', function() {
+    var url = '/api/readings/filter?limit=500&';
+    if (selNode.value) url += 'node_id=' + selNode.value + '&';
+    if (dtFrom.value) url += 'from=' + dtFrom.value + 'T00:00:00&';
+    if (dtTo.value) url += 'to=' + dtTo.value + 'T23:59:59&';
+
+    btnApply.disabled = true;
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.readings.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Tidak ada data untuk filter ini.</td></tr>';
+          countEl.textContent = '0 record';
+          return;
+        }
+        tbody.innerHTML = data.readings.map(function(r) {
+          return '<tr>' +
+            '<td class="mono">' + (r.timestamp ? r.timestamp.substring(0, 19) : '—') + '</td>' +
+            '<td><strong>' + r.node_id + '</strong></td>' +
+            '<td class="mono">' + (r.pgv !== null ? Number(r.pgv).toFixed(3) : '—') + '</td>' +
+            '<td class="mono">' + (r.pga !== null ? Number(r.pga).toFixed(4) : '—') + '</td>' +
+            '<td class="mono">' + (r.freq_dom !== null ? Number(r.freq_dom).toFixed(2) : '—') + '</td>' +
+            '<td><span class="katalog-status status-' + r.status + '">' + r.status.toUpperCase() + '</span></td>' +
+          '</tr>';
+        }).join('');
+        countEl.textContent = data.count + ' record';
+      })
+      .finally(function() { btnApply.disabled = false; });
+  });
+
+  btnExport?.addEventListener('click', function() {
+    var url = '/api/export/' + selNode.value + '.csv?';
+    if (dtFrom.value) url += 'from=' + dtFrom.value + 'T00:00:00&';
+    if (dtTo.value) url += 'to=' + dtTo.value + 'T23:59:59&';
+    window.location.href = url;
+    if (window.showToast) window.showToast('Menyiapkan file CSV…', 'success');
+  });
+})();
+</script>
+{% endblock %}

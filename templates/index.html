@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+{% block title %}Beranda{% endblock %}
+
+{% block content %}
+
+{% set s = stats|default({
+  'total_node': 6, 'node_online': 5, 'pgv_max': 0.42,
+  'update_detik': 12, 'uptime_persen': 99.9,
+  'f0_rata': 4.2, 'a0_rata': 3.8, 'kg_rata': 3.44,
+  'node_hvsr': [], 'hvsr_curve': {},
+  'pgv_series': [0.10, 0.12, 0.18, 0.22, 0.19, 0.25, 0.31, 0.28, 0.35,
+                 0.30, 0.27, 0.33, 0.42, 0.38, 0.31, 0.29, 0.34, 0.30,
+                 0.26, 0.22, 0.28, 0.24, 0.20, 0.18]
+}) %}
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <svg class="hero-wave" viewBox="0 0 1440 200" preserveAspectRatio="none" aria-hidden="true">
+    <path class="wave-line"
+      d="M0,100 Q60,60 120,100 T240,100 T360,100 Q420,140 480,100 T600,100 T720,100 Q780,60 840,100 T960,100 T1080,100 Q1140,140 1200,100 T1320,100 T1440,100"
+      fill="none" stroke="rgba(245,158,11,0.5)" stroke-width="2"></path>
+    <path class="wave-line wave-line-2"
+      d="M0,120 Q80,80 160,120 T320,120 T480,120 Q560,160 640,120 T800,120 T960,120 Q1040,80 1120,120 T1280,120 T1440,120"
+      fill="none" stroke="rgba(251,191,36,0.35)" stroke-width="2"></path>
+  </svg>
+
+  <div class="hero-content">
+    <span class="hero-badge">
+      <span class="pulse-dot"></span>
+      Mikroseismik HVSR · {{ s.node_online }} Node Aktif
+    </span>
+
+    <h1 data-i18n="hero.title">Selamat Datang di VibraLens</h1>
+    <p data-i18n="hero.desc">
+      Sistem pemantauan getaran tanah real-time berbasis IoT dengan analisis
+      Horizontal-to-Vertical Spectral Ratio (HVSR) untuk microzonasi seismik
+      di kawasan Jatinangor, Universitas Padjadjaran.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn-primary" href="{{ url_for('fitur_page', slug='monitoring') }}">
+        <i data-lucide="layout-dashboard"></i>
+        <span data-i18n="hero.cta.primary">Buka Dashboard</span>
+      </a>
+      <button class="btn-ghost" id="aboutBtn" type="button">
+        <i data-lucide="info"></i>
+        <span data-i18n="hero.more">Pelajari</span>
+      </button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <strong>{{ s.total_node }}</strong>
+        <span data-i18n="stat.node">Node</span>
+      </div>
+      <div class="hero-stat">
+        <strong class="text-ok">{{ s.node_online }}</strong>
+        <span data-i18n="stat.online">Online</span>
+      </div>
+      <div class="hero-stat">
+        <strong>24/7</strong>
+        <span data-i18n="stat.monitoring">Monitoring</span>
+      </div>
+      <div class="hero-stat">
+        <strong>HVSR</strong>
+        <span data-i18n="stat.method">Metode</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== RINGKASAN SISTEM ==================== -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow" data-i18n="ringkasan.eyebrow">Live Data</span>
+      <h2 class="section-title" data-i18n="ringkasan.title">Ringkasan Sistem</h2>
+    </div>
+    <div class="live-indicator">
+      <span class="pulse-dot"></span>
+      <span data-i18n="ringkasan.live">Live</span>
+    </div>
+  </div>
+
+  <div class="ringkasan-panel">
+    <div class="ringkasan-grid">
+      <div class="ringkasan-stat">
+        <div class="ringkasan-icon icon-blue"><i data-lucide="radio"></i></div>
+        <div class="ringkasan-value">{{ s.total_node }}</div>
+        <div class="ringkasan-label" data-i18n="ringkasan.total">Total Node</div>
+      </div>
+      <div class="ringkasan-stat">
+        <div class="ringkasan-icon icon-green"><i data-lucide="wifi"></i></div>
+        <div class="ringkasan-value text-ok">{{ s.node_online }}</div>
+        <div class="ringkasan-label" data-i18n="ringkasan.online">Node Online</div>
+      </div>
+      <div class="ringkasan-stat">
+        <div class="ringkasan-icon icon-amber"><i data-lucide="activity"></i></div>
+        <div class="ringkasan-value">{{ "%.2f"|format(s.pgv_max) }}<small>mm/s</small></div>
+        <div class="ringkasan-label" data-i18n="ringkasan.pgv">PGV Maksimum</div>
+      </div>
+      <div class="ringkasan-stat">
+        <div class="ringkasan-icon icon-violet"><i data-lucide="timer"></i></div>
+        <div class="ringkasan-value">{{ s.update_detik }}<small>s</small></div>
+        <div class="ringkasan-label" data-i18n="ringkasan.update">Update Terakhir</div>
+      </div>
+    </div>
+
+    <div class="ringkasan-chart" id="chartData" data-pgv='{{ s.pgv_series|tojson }}'>
+      <div class="chart-head">
+        <span data-i18n="ringkasan.chart.title">PGV 24 Jam Terakhir</span>
+        <span class="chart-meta">mm/s · sample 5 menit</span>
+      </div>
+      <svg class="chart-svg" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.35"></stop>
+            <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <line class="chart-threshold threshold-warn" x1="0" y1="0" x2="600" y2="0"
+              stroke="#F59E0B" stroke-width="1" stroke-dasharray="4 4" opacity="0.45"></line>
+        <line class="chart-threshold threshold-alert" x1="0" y1="0" x2="600" y2="0"
+              stroke="#EF4444" stroke-width="1" stroke-dasharray="4 4" opacity="0.55"></line>
+        <polyline class="chart-area" fill="url(#chartFill)" points="0,120 600,120"></polyline>
+        <polyline class="chart-line" fill="none" stroke="#F59E0B" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"
+                  points="0,100 600,100"></polyline>
+      </svg>
+      <div class="chart-axis">
+        <span>-24h</span>
+        <span>-18h</span>
+        <span>-12h</span>
+        <span>-6h</span>
+        <span>now</span>
+      </div>
+      <div class="chart-legend">
+        <span class="chart-legend-item">
+          <span class="chart-legend-dash" style="background:#F59E0B"></span>
+          Warning 0.5 mm/s
+        </span>
+        <span class="chart-legend-item">
+          <span class="chart-legend-dash" style="background:#EF4444"></span>
+          Alert 1.0 mm/s
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PARAMETER HVSR ==================== -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow" data-i18n="hvsr.eyebrow">Analisis Mikroseismik</span>
+      <h2 class="section-title" data-i18n="hvsr.title">Parameter HVSR</h2>
+    </div>
+    <p class="section-sub" data-i18n="hvsr.sub">
+      Hasil pengolahan Horizontal-to-Vertical Spectral Ratio dari sinyal ambient noise.
+    </p>
+  </div>
+
+  <div class="hvsr-panel">
+    <div class="hvsr-stats">
+      <div class="hvsr-stat">
+        <div class="hvsr-symbol">f₀</div>
+        <div class="hvsr-value">{{ "%.2f"|format(s.f0_rata) }}<small>Hz</small></div>
+        <div class="hvsr-label" data-i18n="hvsr.f0">Frekuensi Dominan</div>
+        <div class="hvsr-hint" data-i18n="hvsr.f0.hint">Frekuensi natural tanah</div>
+      </div>
+      <div class="hvsr-stat">
+        <div class="hvsr-symbol">A₀</div>
+        <div class="hvsr-value">{{ "%.2f"|format(s.a0_rata) }}<small>×</small></div>
+        <div class="hvsr-label" data-i18n="hvsr.a0">Amplifikasi</div>
+        <div class="hvsr-hint" data-i18n="hvsr.a0.hint">Penguatan getaran oleh tanah</div>
+      </div>
+      <div class="hvsr-stat">
+        <div class="hvsr-symbol">K_g</div>
+        <div class="hvsr-value">{{ "%.2f"|format(s.kg_rata) }}<small>1/Hz</small></div>
+        <div class="hvsr-label" data-i18n="hvsr.kg">Indeks Kerentanan</div>
+        <div class="hvsr-hint" data-i18n="hvsr.kg.hint">A₀² / f₀ — Kanai</div>
+      </div>
+    </div>
+
+    <div class="hvsr-chart-wrapper">
+      <div class="chart-head">
+        <span data-i18n="hvsr.chart.title">Kurva HVSR Rata-rata</span>
+        <span class="chart-meta">f₀ = 4.2 Hz · A₀ = 4.3×</span>
+      </div>
+      <svg class="hvsr-chart" viewBox="0 0 600 200" preserveAspectRatio="none"
+           id="hvsrChart"
+           data-curve='{{ s.hvsr_curve|tojson }}'>
+        <defs>
+          <linearGradient id="hvsrFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.3"></stop>
+            <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <line class="hvsr-grid" x1="0" y1="50" x2="600" y2="50"></line>
+        <line class="hvsr-grid" x1="0" y1="100" x2="600" y2="100"></line>
+        <line class="hvsr-grid" x1="0" y1="150" x2="600" y2="150"></line>
+        <line class="hvsr-f0-line" id="hvsrF0Line" x1="0" y1="0" x2="0" y2="200"
+              stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.7"></line>
+        <polyline class="hvsr-area" fill="url(#hvsrFill)" points=""></polyline>
+        <polyline class="hvsr-line" fill="none" stroke="#F59E0B" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round" points=""></polyline>
+        <circle class="hvsr-peak" cx="0" cy="0" r="5" fill="#F59E0B"
+                stroke="#0A0907" stroke-width="2"></circle>
+      </svg>
+      <div class="hvsr-axis">
+        <div class="hvsr-axis-x">
+          <span>0.5</span>
+          <span>2</span>
+          <span>4</span>
+          <span>6</span>
+          <span>8</span>
+          <span>10 Hz</span>
+        </div>
+        <div class="hvsr-axis-y-label">Amplifikasi (H/V)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hvsr-table-wrapper">
+    <table class="hvsr-table">
+      <thead>
+        <tr>
+          <th data-i18n="hvsr.tbl.node">Node</th>
+          <th>f₀ <span class="unit">Hz</span></th>
+          <th>A₀ <span class="unit">×</span></th>
+          <th>K_g <span class="unit">1/Hz</span></th>
+          <th data-i18n="hvsr.tbl.zona">Zona Kerentanan</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in s.node_hvsr %}
+        <tr>
+          <td><strong>Node {{ n.id }}</strong></td>
+          <td class="mono">{{ "%.2f"|format(n.f0) }}</td>
+          <td class="mono">{{ "%.2f"|format(n.a0) }}</td>
+          <td class="mono">{{ "%.2f"|format(n.kg) }}</td>
+          <td>
+            <span class="zona-badge zona-{{ n.zona }}">
+              {{ n.zona|upper }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== FITUR ==================== -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow" data-i18n="fitur.eyebrow">Modul Utama</span>
+      <h2 class="section-title" data-i18n="fitur.title">Fitur Tersedia</h2>
+    </div>
+    <p class="section-sub" data-i18n="fitur.sub">
+      Enam modul terintegrasi untuk pemantauan, analisis, dan pengelolaan data getaran.
+    </p>
+  </div>
+
+  <div class="fitur-grid">
+    {% for key, item in fitur.items() %}
+    <a class="fitur-card {% if key == 'monitoring' %}fitur-featured tint-blue{% elif key == 'event' %}tint-red{% elif key == 'analisis' %}tint-violet{% elif key == 'peta' %}tint-green{% elif key == 'riwayat' %}tint-amber{% else %}tint-slate{% endif %}"
+       href="{{ url_for('fitur_page', slug=key) }}">
+
+      {% if key == 'monitoring' %}
+      <div class="fitur-featured-visual">
+        <svg viewBox="0 0 400 80" preserveAspectRatio="none" class="fitur-spark" aria-hidden="true">
+          <polyline fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"
+            points="0,60 25,55 50,58 75,40 100,44 125,30 150,35 175,20 200,28 225,15 250,22 275,12 300,20 325,10 350,18 375,8 400,14"></polyline>
+        </svg>
+        <span class="fitur-featured-badge" data-i18n="fitur.live">LIVE</span>
+      </div>
+      {% endif %}
+
+      <div class="fitur-body">
+        <div class="fitur-ikon">
+          <i data-lucide="{{ item.ikon }}"></i>
+        </div>
+        <div class="fitur-name" data-i18n="fitur.{{ key }}">{{ item.nama_id }}</div>
+        <div class="fitur-desc" data-i18n="fitur.{{ key }}.desc">Deskripsi singkat modul ini.</div>
+        <div class="fitur-cta">
+          <span data-i18n="fitur.open">Buka</span>
+          <i data-lucide="arrow-right"></i>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ==================== CARA KERJA ==================== -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow" data-i18n="cara.eyebrow">Alur Sistem</span>
+      <h2 class="section-title" data-i18n="cara.title">Bagaimana VibraLens Bekerja</h2>
+    </div>
+    <p class="section-sub" data-i18n="cara.sub">
+      Dari sensor di lapangan sampai analisis HVSR di layar Anda.
+    </p>
+  </div>
+
+  <div class="alur-grid">
+    <div class="alur-step">
+      <div class="alur-icon icon-amber"><i data-lucide="mic"></i></div>
+      <div class="alur-num">01</div>
+      <h3 data-i18n="cara.step1.title">Geophone</h3>
+      <p data-i18n="cara.step1.desc">Sensor menangkap getaran tanah di lokasi pemasangan.</p>
+    </div>
+
+    <div class="alur-arrow"><i data-lucide="arrow-right"></i></div>
+
+    <div class="alur-step">
+      <div class="alur-icon icon-blue"><i data-lucide="radio"></i></div>
+      <div class="alur-num">02</div>
+      <h3 data-i18n="cara.step2.title">Node LoRa</h3>
+      <p data-i18n="cara.step2.desc">Data dikirim nirkabel lewat LoRa ke gateway terdekat.</p>
+    </div>
+
+    <div class="alur-arrow"><i data-lucide="arrow-right"></i></div>
+
+    <div class="alur-step">
+      <div class="alur-icon icon-violet"><i data-lucide="waves"></i></div>
+      <div class="alur-num">03</div>
+      <h3 data-i18n="cara.step3.title">Analisis HVSR</h3>
+      <p data-i18n="cara.step3.desc">Rasio spektrum H/V dihitung untuk ekstraksi f₀, A₀, K_g.</p>
+    </div>
+
+    <div class="alur-arrow"><i data-lucide="arrow-right"></i></div>
+
+    <div class="alur-step">
+      <div class="alur-icon icon-green"><i data-lucide="map"></i></div>
+      <div class="alur-num">04</div>
+      <h3 data-i18n="cara.step4.title">Microzonasi</h3>
+      <p data-i18n="cara.step4.desc">Peta zona kerentanan seismik kawasan kampus.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FAQ ==================== -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="section-eyebrow" data-i18n="faq.eyebrow">Pertanyaan</span>
+      <h2 class="section-title" data-i18n="faq.title">Sering Ditanyakan</h2>
+    </div>
+  </div>
+
+  <div class="faq-list">
+    <details class="faq-item">
+      <summary>
+        <span data-i18n="faq.q1">Apa itu metode HVSR?</span>
+        <i data-lucide="chevron-down" class="faq-chevron"></i>
+      </summary>
+      <p data-i18n="faq.a1">HVSR (Horizontal-to-Vertical Spectral Ratio) adalah metode analisis mikroseismik yang memanfaatkan sinyal ambient noise untuk mengestimasi frekuensi dominan (f₀) dan amplifikasi (A₀) lapisan tanah. Diperkenalkan oleh Nakamura (1989).</p>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-i18n="faq.q2">Apa arti f₀, A₀, dan K_g?</span>
+        <i data-lucide="chevron-down" class="faq-chevron"></i>
+      </summary>
+      <p data-i18n="faq.a2">f₀ adalah frekuensi dominan (Hz) — frekuensi natural tanah. A₀ adalah amplifikasi (rasio) — seberapa besar getaran diperkuat. K_g = A₀²/f₀ adalah indeks kerentanan seismik (Kanai).</p>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-i18n="faq.q3">Bagaimana cara membaca zona kerentanan?</span>
+        <i data-lucide="chevron-down" class="faq-chevron"></i>
+      </summary>
+      <p data-i18n="faq.a3">K_g < 3 = aman, 3–10 = sedang, > 10 = rawan. Nilai K_g tinggi berarti tanah lebih rentan terhadap amplifikasi goncangan gempa.</p>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-i18n="faq.q4">Seberapa sering data di-update?</span>
+        <i data-lucide="chevron-down" class="faq-chevron"></i>
+      </summary>
+      <p data-i18n="faq.a4">Data sensor dikirim setiap 10 detik. Analisis HVSR dilakukan per window 30 menit untuk stabilitas statistik.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ==================== CTA ==================== -->
+<section class="cta-section">
+  <div class="cta-box">
+    <div class="cta-glow"></div>
+    <div class="cta-content">
+      <h2 data-i18n="cta.title">Siap memetakan kerentanan seismik kampus?</h2>
+      <p data-i18n="cta.sub">
+        Semua parameter HVSR terintegrasi dalam satu dashboard. Mulai eksplorasi sekarang.
+      </p>
+      <div class="cta-actions">
+        <a class="btn-primary" href="{{ url_for('fitur_page', slug='analisis') }}">
+          <i data-lucide="waves"></i>
+          <span data-i18n="cta.primary">Analisis HVSR</span>
+        </a>
+        <a class="btn-ghost btn-ghost-light" href="{{ url_for('fitur_page', slug='peta') }}">
+          <i data-lucide="map"></i>
+          <span data-i18n="cta.secondary">Lihat Peta Microzonasi</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MODAL ==================== -->
+<div class="modal" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="aboutTitle" data-i18n="about.title">Tentang VibraLens</h3>
+      <button class="icon-btn" id="aboutClose" aria-label="Tutup" type="button">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <h4 data-i18n="about.bg">Latar Belakang</h4>
+      <p data-i18n="about.bg.text">VibraLens dikembangkan sebagai bagian dari tugas akhir Program Studi Geofisika, Universitas Padjadjaran, untuk menganalisis kerentanan seismik kawasan kampus Jatinangor menggunakan metode HVSR berbasis IoT.</p>
+      <h4 data-i18n="about.obj">Tujuan</h4>
+      <p data-i18n="about.obj.text">Mengestimasi parameter f₀, A₀, dan K_g dari sinyal ambient noise untuk microzonasi seismik kawasan kampus.</p>
+      <h4 data-i18n="about.how">Cara Kerja</h4>
+      <p data-i18n="about.how.text">Geophone → Node LoRa → Gateway LTE → Server → Analisis HVSR → Dashboard.</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ============ CHART PGV ============
+  (function() {
+    var chartEl = document.getElementById('chartData');
+    if (!chartEl) return;
+    var data;
+    try { data = JSON.parse(chartEl.getAttribute('data-pgv') || '[]'); }
+    catch (err) { data = []; }
+    if (!data.length) return;
+
+    var svg = chartEl.querySelector('.chart-svg');
+    if (!svg) return;
+    var line = svg.querySelector('.chart-line');
+    var area = svg.querySelector('.chart-area');
+    if (!line || !area) return;
+
+    var W = 600, H = 120, pad = 8;
+    var warnVal = 0.5, alertVal = 1.0;
+    var dataMax = Math.max.apply(null, data);
+    var scaleMax = Math.max(dataMax, alertVal * 1.15);
+    var min = 0;
+    var pts = [];
+
+    for (var i = 0; i < data.length; i++) {
+      var x = (i / (data.length - 1)) * W;
+      var y = H - pad - ((data[i] - min) / (scaleMax - min)) * (H - pad * 2);
+      pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+    }
+    var ptsStr = pts.join(' ');
+    line.setAttribute('points', ptsStr);
+    area.setAttribute('points', '0,' + H + ' ' + ptsStr + ' ' + W + ',' + H);
+
+    var yWarn  = H - pad - ((warnVal  - min) / (scaleMax - min)) * (H - pad * 2);
+    var yAlert = H - pad - ((alertVal - min) / (scaleMax - min)) * (H - pad * 2);
+    var thWarn  = chartEl.querySelector('.threshold-warn');
+    var thAlert = chartEl.querySelector('.threshold-alert');
+    if (thWarn)  { thWarn.setAttribute('y1', yWarn);  thWarn.setAttribute('y2', yWarn); }
+    if (thAlert) { thAlert.setAttribute('y1', yAlert); thAlert.setAttribute('y2', yAlert); }
+
+    try {
+      var len = line.getTotalLength();
+      if (len && isFinite(len)) {
+        line.style.strokeDasharray = String(len);
+        line.style.strokeDashoffset = String(len);
+        void line.getBoundingClientRect();
+        line.style.transition = 'stroke-dashoffset 1.5s ease-out';
+        line.style.strokeDashoffset = '0';
+      }
+    } catch (e) { }
+  })();
+
+  // ============ CHART HVSR ============
+  (function() {
+    var chartEl = document.getElementById('hvsrChart');
+    if (!chartEl) return;
+
+    var curve;
+    try { curve = JSON.parse(chartEl.getAttribute('data-curve') || '{}'); }
+    catch(e) { return; }
+    if (!curve.frekuensi || !curve.amplifikasi) return;
+
+    var freqs = curve.frekuensi;
+    var amps = curve.amplifikasi;
+    var f0 = curve.f0_peak;
+    var a0 = curve.a0_peak;
+
+    var W = 600, H = 200, padX = 20, padY = 20;
+    var fMin = freqs[0], fMax = freqs[freqs.length - 1];
+    var aMin = 0, aMax = Math.max.apply(null, amps) * 1.15;
+    var logFMin = Math.log10(fMin);
+    var logFMax = Math.log10(fMax);
+
+    function xScale(f) {
+      return padX + ((Math.log10(f) - logFMin) / (logFMax - logFMin)) * (W - padX * 2);
+    }
+    function yScale(a) {
+      return H - padY - ((a - aMin) / (aMax - aMin)) * (H - padY * 2);
+    }
+
+    var pts = [];
+    for (var i = 0; i < freqs.length; i++) {
+      pts.push(xScale(freqs[i]).toFixed(1) + ',' + yScale(amps[i]).toFixed(1));
+    }
+    var ptsStr = pts.join(' ');
+
+    var line = chartEl.querySelector('.hvsr-line');
+    var area = chartEl.querySelector('.hvsr-area');
+    var peak = chartEl.querySelector('.hvsr-peak');
+    var f0Line = document.getElementById('hvsrF0Line');
+
+    if (line) line.setAttribute('points', ptsStr);
+    if (area) {
+      var baseY = yScale(1);
+      area.setAttribute('points',
+        xScale(fMin).toFixed(1) + ',' + baseY + ' ' +
+        ptsStr + ' ' +
+        xScale(fMax).toFixed(1) + ',' + baseY);
+    }
+    if (peak) {
+      peak.setAttribute('cx', xScale(f0));
+      peak.setAttribute('cy', yScale(a0));
+    }
+    if (f0Line) {
+      var xF0 = xScale(f0);
+      f0Line.setAttribute('x1', xF0);
+      f0Line.setAttribute('x2', xF0);
+    }
+
+    try {
+      var len = line.getTotalLength();
+      if (len && isFinite(len)) {
+        line.style.strokeDasharray = String(len);
+        line.style.strokeDashoffset = String(len);
+        void line.getBoundingClientRect();
+        line.style.transition = 'stroke-dashoffset 1.8s ease-out';
+        line.style.strokeDashoffset = '0';
+      }
+    } catch(e) {}
+  })();
+</script>
+{% endblock %}

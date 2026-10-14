@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.nama_id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="back">Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <span data-i18n="fitur.{{ slug }}">{{ meta.nama_id }}</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">HVSR · Nakamura (1989)</span>
+    <h1>Analisis Sinyal & AI Interpretation</h1>
+    <p>
+      Pilih node, jalankan analisis HVSR otomatis, dan dapatkan interpretasi
+      dari sistem pakar berbasis aturan.
+    </p>
+  </div>
+</div>
+
+<!-- KONTROL -->
+<div class="analisis-control">
+  <div class="analisis-control-left">
+    <label for="nodeSelect">Pilih Node</label>
+    <select id="nodeSelect" class="analisis-select">
+      {% for n in nodes %}
+      <option value="{{ n.id }}">
+        {{ n.kode }} · {{ n.nama }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="analisis-control-right">
+    <label for="durationSelect">Durasi Analisis</label>
+    <select id="durationSelect" class="analisis-select">
+      <option value="600">10 menit</option>
+      <option value="1800" selected>30 menit</option>
+      <option value="3600">60 menit</option>
+    </select>
+  </div>
+
+  <button id="runAnalysis" class="btn-primary analisis-run-btn" type="button">
+    <i data-lucide="play"></i>
+    <span>Jalankan Analisis</span>
+  </button>
+</div>
+
+<!-- LOADING STATE -->
+<div id="analisisLoading" class="analisis-loading" hidden>
+  <div class="analisis-loading-spinner"></div>
+  <div class="analisis-loading-text">Memproses sinyal…</div>
+  <div class="analisis-loading-steps">
+    <div class="step" data-step="1">Preprocessing (filter + detrend)</div>
+    <div class="step" data-step="2">FFT / Welch PSD</div>
+    <div class="step" data-step="3">Kalkulasi HVSR</div>
+    <div class="step" data-step="4">AI Interpretation</div>
+  </div>
+</div>
+
+<!-- EMPTY STATE -->
+<div id="analisisEmpty" class="analisis-empty">
+  <i data-lucide="waves"></i>
+  <h3>Belum Ada Hasil</h3>
+  <p>Pilih node lalu klik <strong>Jalankan Analisis</strong> untuk memulai.</p>
+</div>
+
+<!-- HASIL -->
+<div id="analisisResult" class="analisis-result" hidden>
+
+  <!-- Ringkasan Atas -->
+  <div class="analisis-summary-bar">
+    <div class="summary-item">
+      <span class="summary-label">Node</span>
+      <strong id="resNode">—</strong>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">f₀</span>
+      <strong id="resF0">—</strong>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">A₀</span>
+      <strong id="resA0">—</strong>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">K_g</span>
+      <strong id="resKg">—</strong>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Zona</span>
+      <span id="resZona" class="zona-badge">—</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Waktu</span>
+      <strong id="resTime">—</strong>
+    </div>
+  </div>
+
+  <!-- Grid Utama -->
+  <div class="analisis-grid">
+
+    <!-- Kurva HVSR -->
+    <section class="analisis-panel analisis-panel-wide">
+      <div class="analisis-panel-head">
+        <i data-lucide="activity"></i>
+        <h2>Kurva HVSR</h2>
+        <span class="panel-meta" id="resProcessingInfo"></span>
+      </div>
+      <div class="hvsr-chart-container">
+        <svg id="hvsrChart" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
+        <div class="hvsr-chart-legend">
+          <span class="legend-item">
+            <span class="legend-dot" style="background:#F59E0B"></span>
+            HVSR Ratio
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot" style="background:#EF4444"></span>
+            Puncak f₀
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Parameter Hasil -->
+    <section class="analisis-panel">
+      <div class="analisis-panel-head">
+        <i data-lucide="target"></i>
+        <h2>Parameter Hasil</h2>
+      </div>
+      <div class="param-grid">
+        <div class="param-card">
+          <div class="param-symbol">f₀</div>
+          <div class="param-value" id="paramF0">—</div>
+          <div class="param-label">Frekuensi Dominan</div>
+        </div>
+        <div class="param-card">
+          <div class="param-symbol">A₀</div>
+          <div class="param-value" id="paramA0">—</div>
+          <div class="param-label">Amplifikasi</div>
+        </div>
+        <div class="param-card">
+          <div class="param-symbol">K_g</div>
+          <div class="param-value" id="paramKg">—</div>
+          <div class="param-label">Indeks Kerentanan</div>
+        </div>
+        <div class="param-card">
+          <div class="param-symbol">H</div>
+          <div class="param-value" id="paramDepth">—</div>
+          <div class="param-label">Estimasi Kedalaman Sedimen</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Interpretation -->
+    <section class="analisis-panel analisis-panel-wide">
+      <div class="analisis-panel-head">
+        <i data-lucide="brain"></i>
+        <h2>Interpretasi AI</h2>
+        <span class="panel-meta">Rule-based Expert System</span>
+      </div>
+
+      <div class="ai-summary" id="aiSummary">—</div>
+
+      <div class="ai-narasi">
+        <h3>Analisis Detail</h3>
+        <ul id="aiNarasiList"></ul>
+      </div>
+
+      <div class="ai-rekomendasi">
+        <div class="rekomendasi-icon"><i data-lucide="clipboard-check"></i></div>
+        <div>
+          <h3>Rekomendasi</h3>
+          <p id="aiRekomendasi">—</p>
+        </div>
+      </div>
+
+      <div class="ai-referensi">
+        <h3>Referensi Ilmiah</h3>
+        <ul id="aiReferensiList"></ul>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var btn = document.getElementById('runAnalysis');
+  var selNode = document.getElementById('nodeSelect');
+  var selDur = document.getElementById('durationSelect');
+  var loadingEl = document.getElementById('analisisLoading');
+  var emptyEl = document.getElementById('analisisEmpty');
+  var resultEl = document.getElementById('analisisResult');
+
+  if (!btn) return;
+
+  function setStep(n) {
+    document.querySelectorAll('.analisis-loading-steps .step').forEach(function(s) {
+      var sn = parseInt(s.dataset.step);
+      s.classList.toggle('active', sn === n);
+      s.classList.toggle('done', sn < n);
+    });
+  }
+
+  function renderHvsrChart(freqs, hvsr, f0, a0) {
+    var svg = document.getElementById('hvsrChart');
+    if (!svg) return;
+    svg.innerHTML = '';
+
+    var W = 800, H = 320;
+    var padL = 60, padR = 30, padT = 30, padB = 50;
+    var innerW = W - padL - padR;
+    var innerH = H - padT - padB;
+
+    var fMin = freqs[0], fMax = freqs[freqs.length - 1];
+    var hMin = 0, hMax = Math.max.apply(null, hvsr) * 1.15;
+
+    // Skala log untuk frekuensi
+    var logFMin = Math.log10(fMin);
+    var logFMax = Math.log10(fMax);
+
+    function xScale(f) {
+      return padL + ((Math.log10(f) - logFMin) / (logFMax - logFMin)) * innerW;
+    }
+    function yScale(v) {
+      return H - padB - ((v - hMin) / (hMax - hMin)) * innerH;
+    }
+
+    // Grid
+    var gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    for (var i = 0; i <= 4; i++) {
+      var y = padT + (i / 4) * innerH;
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', padL);
+      line.setAttribute('x2', W - padR);
+      line.setAttribute('y1', y);
+      line.setAttribute('y2', y);
+      line.setAttribute('stroke', 'rgba(255,255,255,0.06)');
+      line.setAttribute('stroke-dasharray', '3 4');
+      gridGroup.appendChild(line);
+    }
+    svg.appendChild(gridGroup);
+
+    // Y-axis labels
+    var yLabels = [0, hMax/4, hMax/2, hMax*3/4, hMax];
+    yLabels.forEach(function(v) {
+      var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', padL - 10);
+      text.setAttribute('y', yScale(v) + 4);
+      text.setAttribute('text-anchor', 'end');
+      text.setAttribute('fill', '#8A9AB5');
+      text.setAttribute('font-size', '11');
+      text.setAttribute('font-family', 'JetBrains Mono, monospace');
+      text.textContent = v.toFixed(1);
+      svg.appendChild(text);
+    });
+
+    // X-axis labels
+    [0.5, 1, 2, 5, 10, 20].forEach(function(f) {
+      if (f < fMin || f > fMax) return;
+      var x = xScale(f);
+      var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', H - padB + 20);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', '#8A9AB5');
+      text.setAttribute('font-size', '11');
+      text.setAttribute('font-family', 'JetBrains Mono, monospace');
+      text.textContent = f + (f === 20 ? ' Hz' : '');
+      svg.appendChild(text);
+    });
+
+    // Area fill
+    var areaPts = [];
+    for (var i = 0; i < freqs.length; i++) {
+      areaPts.push(xScale(freqs[i]) + ',' + yScale(hvsr[i]));
+    }
+    var areaPath = 'M' + padL + ',' + (H - padB) + ' L' +
+                   areaPts.join(' L') + ' L' + (W - padR) + ',' + (H - padB) + ' Z';
+
+    var area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    area.setAttribute('d', areaPath);
+    area.setAttribute('fill', 'rgba(245,158,11,0.15)');
+    svg.appendChild(area);
+
+    // Line
+    var linePath = 'M' + areaPts.join(' L');
+    var line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', linePath);
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', '#F59E0B');
+    line.setAttribute('stroke-width', '2.5');
+    line.setAttribute('stroke-linejoin', 'round');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(line);
+
+    // Peak marker
+    var xPeak = xScale(f0);
+    var yPeak = yScale(a0);
+    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', xPeak);
+    circle.setAttribute('cy', yPeak);
+    circle.setAttribute('r', '6');
+    circle.setAttribute('fill', '#EF4444');
+    circle.setAttribute('stroke', '#0A0907');
+    circle.setAttribute('stroke-width', '2');
+    svg.appendChild(circle);
+
+    // Label peak
+    var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', xPeak + 10);
+    label.setAttribute('y', yPeak - 10);
+    label.setAttribute('fill', '#EF4444');
+    label.setAttribute('font-size', '11');
+    label.setAttribute('font-weight', '700');
+    label.setAttribute('font-family', 'JetBrains Mono, monospace');
+    label.textContent = 'f₀=' + f0.toFixed(2) + ' Hz';
+    svg.appendChild(label);
+
+    // Dashed line dari peak ke x-axis
+    var dashLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    dashLine.setAttribute('x1', xPeak);
+    dashLine.setAttribute('x2', xPeak);
+    dashLine.setAttribute('y1', yPeak);
+    dashLine.setAttribute('y2', H - padB);
+    dashLine.setAttribute('stroke', '#EF4444');
+    dashLine.setAttribute('stroke-width', '1');
+    dashLine.setAttribute('stroke-dasharray', '4 4');
+    dashLine.setAttribute('opacity', '0.5');
+    svg.appendChild(dashLine);
+  }
+
+  function renderResult(data) {
+    // Summary bar
+    document.getElementById('resNode').textContent = data.node.kode;
+    document.getElementById('resF0').textContent = data.hvsr.f0.toFixed(2) + ' Hz';
+    document.getElementById('resA0').textContent = data.hvsr.a0.toFixed(2) + '×';
+    document.getElementById('resKg').textContent = data.hvsr.kg.toFixed(2);
+
+    var zonaEl = document.getElementById('resZona');
+    zonaEl.textContent = data.hvsr.zona.toUpperCase();
+    zonaEl.className = 'zona-badge zona-' + data.hvsr.zona;
+
+    document.getElementById('resTime').textContent =
+      new Date(data.analyzed_at).toLocaleTimeString('id-ID');
+
+    document.getElementById('resProcessingInfo').textContent =
+      data.processing.duration_sec + 's · ' + data.processing.samples.toLocaleString() +
+      ' samples · ' + data.processing.processing_time_ms + 'ms';
+
+    // Parameter cards
+    document.getElementById('paramF0').innerHTML = data.hvsr.f0.toFixed(2) + '<small>Hz</small>';
+    document.getElementById('paramA0').innerHTML = data.hvsr.a0.toFixed(2) + '<small>×</small>';
+    document.getElementById('paramKg').innerHTML = data.hvsr.kg.toFixed(2);
+
+    var depth = data.interpretation.kedalaman_estimasi;
+    document.getElementById('paramDepth').innerHTML = depth
+      ? depth + '<small>m</small>' : '—';
+
+    // Chart
+    renderHvsrChart(data.hvsr.frekuensi, data.hvsr.hvsr, data.hvsr.f0, data.hvsr.a0);
+
+    // AI Interpretation
+    document.getElementById('aiSummary').textContent = data.interpretation.ringkasan;
+
+    var narasiList = document.getElementById('aiNarasiList');
+    narasiList.innerHTML = '';
+    data.interpretation.narasi.forEach(function(n) {
+      var li = document.createElement('li');
+      li.innerHTML = n.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      narasiList.appendChild(li);
+    });
+
+    document.getElementById('aiRekomendasi').textContent = data.interpretation.rekomendasi;
+
+    var refList = document.getElementById('aiReferensiList');
+    refList.innerHTML = '';
+    data.interpretation.referensi.forEach(function(r) {
+      var li = document.createElement('li');
+      li.textContent = r;
+      refList.appendChild(li);
+    });
+  }
+
+  btn.addEventListener('click', function() {
+    var nodeId = selNode.value;
+    var duration = selDur.value;
+
+    // UI states
+    btn.disabled = true;
+    btn.querySelector('span').textContent = 'Memproses…';
+    emptyEl.hidden = true;
+    resultEl.hidden = true;
+    loadingEl.hidden = false;
+
+    // Simulasi step progress
+    var step = 1;
+    setStep(step);
+    var stepInterval = setInterval(function() {
+      if (step < 4) { step++; setStep(step); }
+    }, 400);
+
+    // Fetch
+    fetch('/api/analysis/' + nodeId + '?duration=' + duration)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        clearInterval(stepInterval);
+        setStep(5); // semua done
+
+        if (data.error) {
+          if (window.showToast) window.showToast(data.error, 'info');
+          emptyEl.hidden = false;
+          return;
+        }
+
+        // Sedikit delay biar animasi step kelar
+        setTimeout(function() {
+          loadingEl.hidden = true;
+          resultEl.hidden = false;
+          renderResult(data);
+          if (window.renderIcons) window.renderIcons();
+          if (window.showToast) window.showToast('Analisis selesai', 'success');
+        }, 400);
+      })
+      .catch(function(err) {
+        clearInterval(stepInterval);
+        loadingEl.hidden = true;
+        emptyEl.hidden = false;
+        if (window.showToast) window.showToast('Gagal: ' + err.message, 'info');
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Jalankan Analisis';
+      });
+  });
+})();
+</script>
+{% endblock %}

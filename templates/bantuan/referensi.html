@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Referensi Ilmiah{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span>Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}">Beranda</a>
+    <span>/</span>
+    <span>Referensi</span>
+  </div>
+</div>
+
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">Daftar Pustaka</span>
+    <h1>Referensi Ilmiah</h1>
+    <p>Literatur yang menjadi dasar metodologi dan interpretasi VibraLens.</p>
+  </div>
+</div>
+
+<!-- INFO -->
+<div class="ref-info-bar">
+  <div class="ref-info-item">
+    <strong>6</strong>
+    <span>Referensi Utama</span>
+  </div>
+  <div class="ref-info-item">
+    <strong>3</strong>
+    <span>Seminal Works</span>
+  </div>
+  <div class="ref-info-item">
+    <strong>2</strong>
+    <span>Scopus Q1</span>
+  </div>
+  <div class="ref-info-item">
+    <strong>1</strong>
+    <span>Konteks Indonesia</span>
+  </div>
+</div>
+
+<!-- REFERENSI KATEGORI SEMINAL -->
+<section class="ref-section">
+  <div class="ref-section-head">
+    <i data-lucide="award"></i>
+    <div>
+      <h2>Seminal Works</h2>
+      <p>Karya klasik yang menjadi dasar metode HVSR & indeks kerentanan</p>
+    </div>
+  </div>
+
+  <div class="ref-list">
+    <article class="ref-item ref-seminal">
+      <div class="ref-number">1</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-seminal">SEMINAL</span>
+          <span class="ref-tag">Klasik</span>
+        </div>
+        <h3>Nakamura, Y. (1989)</h3>
+        <p class="ref-title">A method for dynamic characteristics estimation of subsurface using microtremor on the ground surface</p>
+        <p class="ref-journal"><em>Quarterly Report of RTRI</em>, 30(1), 25–33.</p>
+        <p class="ref-abstract">
+          Publikasi asli yang memperkenalkan metode HVSR untuk estimasi karakteristik dinamis
+          lapisan tanah menggunakan mikrotremor. Metode ini menjadi fondasi seluruh analisis
+          mikroseismik modern.
+        </p>
+        <div class="ref-meta-row">
+          <span class="ref-meta"><i data-lucide="file-text"></i> Artikel jurnal</span>
+          <span class="ref-meta"><i data-lucide="globe"></i> Akses terbatas (banyak preprint tersedia)</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="ref-item ref-seminal">
+      <div class="ref-number">2</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-seminal">SEMINAL</span>
+          <span class="ref-tag">Buku</span>
+        </div>
+        <h3>Kanai, K. (1983)</h3>
+        <p class="ref-title">Engineering Seismology</p>
+        <p class="ref-journal">University of Tokyo Press, Tokyo.</p>
+        <p class="ref-abstract">
+          Buku klasik seismologi teknik yang menjadi sumber indeks kerentanan seismik
+          K_g = A₀²/f₀ yang digunakan dalam analisis microzonasi VibraLens.
+        </p>
+        <div class="ref-meta-row">
+          <span class="ref-meta"><i data-lucide="book"></i> Buku akademik</span>
+          <span class="ref-meta"><i data-lucide="library"></i> Perpustakaan universitas</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="ref-item ref-seminal">
+      <div class="ref-number">3</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-seminal">SEMINAL</span>
+          <span class="ref-tag ref-tag-open">OPEN ACCESS</span>
+        </div>
+        <h3>SESAME (2004)</h3>
+        <p class="ref-title">Guidelines for the implementation of the H/V spectral ratio technique on ambient vibrations</p>
+        <p class="ref-journal">SESAME Project Deliverable D23.12, European Commission.</p>
+        <p class="ref-abstract">
+          Panduan standar internasional untuk implementasi metode HVSR. Berisi protokol akuisisi
+          data, preprocessing, analisis, dan kriteria kualitas hasil. Referensi wajib untuk
+          setiap studi HVSR.
+        </p>
+        <div class="ref-meta-row">
+          <span class="ref-meta"><i data-lucide="file-text"></i> Technical report</span>
+          <span class="ref-meta ref-meta-open">
+            <i data-lucide="unlock"></i>
+            <a href="https://www.geopsy.org/documentation/sesame/" target="_blank" rel="noopener">geopsy.org</a>
+          </span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- REFERENSI MODERN -->
+<section class="ref-section">
+  <div class="ref-section-head">
+    <i data-lucide="microscope"></i>
+    <div>
+      <h2>Karya Modern (Peer-Reviewed)</h2>
+      <p>Publikasi terkini yang memvalidasi & mengembangkan metode HVSR</p>
+    </div>
+  </div>
+
+  <div class="ref-list">
+    <article class="ref-item">
+      <div class="ref-number">4</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-q1">SCOPUS Q1</span>
+          <span class="ref-tag ref-tag-open">OPEN ACCESS</span>
+        </div>
+        <h3>Fäh, D., Kind, F., & Giardini, D. (2001)</h3>
+        <p class="ref-title">A theoretical investigation of average H/V ratios</p>
+        <p class="ref-journal"><em>Geophysical Journal International</em>, 145(2), 535–549.</p>
+        <p class="ref-abstract">
+          Investigasi teoretis mengenai rasio H/V rata-rata. Memberikan landasan matematis
+          untuk interpretasi kurva HVSR dalam konteks struktur bawah permukaan berlapis.
+        </p>
+        <div class="ref-meta-row">
+          <span class="ref-meta"><i data-lucide="file-text"></i> Journal article</span>
+          <span class="ref-meta ref-meta-open">
+            <i data-lucide="unlock"></i>
+            <a href="https://academic.oup.com/gji" target="_blank" rel="noopener">Oxford Academic</a>
+          </span>
+        </div>
+      </div>
+    </article>
+
+    <article class="ref-item">
+      <div class="ref-number">5</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-q1">SCOPUS Q1</span>
+        </div>
+        <h3>Bonnefoy-Claudet, S., Cotton, F., & Bard, P.-Y. (2006)</h3>
+        <p class="ref-title">The nature of noise wavefield and its applications for site effects studies: A literature review</p>
+        <p class="ref-journal"><em>Earth-Science Reviews</em>, 79(3-4), 205–227.</p>
+        <p class="ref-abstract">
+          Review komprehensif mengenai karakteristik ambient noise dan penerapannya
+          untuk studi efek tapak. Menjelaskan komposisi gelombang yang membentuk noise
+          dan implikasinya pada analisis HVSR.
+        </p>
+        <div class="ref-meta-row">
+          <span class="ref-meta"><i data-lucide="file-text"></i> Review article</span>
+          <span class="ref-meta"><i data-lucide="globe"></i> Elsevier (akses sebagian terbuka)</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="ref-item">
+      <div class="ref-number">6</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-scopus">SCOPUS</span>
+          <span class="ref-tag ref-tag-open">OPEN ACCESS</span>
+        </div>
+        <h3>Mucciarelli, M., & Gallipoli, M. R. (2001)</h3>
+        <p class="ref-title">A critical review of 10 years of microtremor HVSR technique</p>
+        <p class="ref-journal"><em>Bollettino di Geofisica Teorica ed Applicata</em>, 42(3-4), 255–266.</p>
+        <p class="ref-abstract">
+          Review kritis pertama mengenai metode HVSR setelah 10 tahun penerapannya.
+          Membahas kelebihan, keterbatasan, dan interpretasi yang tepat.
+        </p>
+        <div class="ref-meta-row">
+          <span class="ref-meta"><i data-lucide="file-text"></i> Review article</span>
+          <span class="ref-meta ref-meta-open"><i data-lucide="unlock"></i> OGS Open Access</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- KONTEKS INDONESIA -->
+<section class="ref-section">
+  <div class="ref-section-head">
+    <i data-lucide="map-pin"></i>
+    <div>
+      <h2>Konteks Indonesia</h2>
+      <p>Referensi lokal untuk penerapan di Indonesia</p>
+    </div>
+  </div>
+
+  <div class="ref-list">
+    <article class="ref-item">
+      <div class="ref-number">7</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-gov">PEMERINTAH</span>
+          <span class="ref-tag ref-tag-open">OPEN ACCESS</span>
+        </div>
+        <h3>Irsyam, M., dkk. (2017)</h3>
+        <p class="ref-title">Peta Sumber dan Bahaya Gempa Indonesia Tahun 2017</p>
+        <p class="ref-journal">Pusat Penelitian dan Pengembangan Perumahan dan Permukiman, Kementerian PUPR.</p>
+        <p class="ref-abstract">
+          Dokumen resmi pemerintah Indonesia yang memuat peta sumber gempa dan
+          tingkat bahaya seismik untuk seluruh wilayah Indonesia. Menjadi acuan
+          perencanaan bangunan tahan gempa.
+        </p>
+        <div class="ref-meta-row">
+          <span class="ref-meta"><i data-lucide="book"></i> Buku resmi</span>
+          <span class="ref-meta ref-meta-open">
+            <i data-lucide="unlock"></i>
+            <a href="https://puskim.pu.go.id" target="_blank" rel="noopener">puskim.pu.go.id</a>
+          </span>
+        </div>
+      </div>
+    </article>
+
+    <article class="ref-item ref-placeholder">
+      <div class="ref-number">8</div>
+      <div class="ref-body">
+        <div class="ref-tags">
+          <span class="ref-tag ref-tag-sinta">SINTA</span>
+          <span class="ref-tag ref-tag-todo">TODO</span>
+        </div>
+        <h3>Referensi Nasional (untuk ditambahkan)</h3>
+        <p class="ref-title">[Judul paper tentang HVSR / mikroseismik Indonesia]</p>
+        <p class="ref-journal">[Nama jurnal SINTA 2-4]</p>
+        <p class="ref-abstract">
+          Slot untuk paper SINTA lokal yang relevan. Cari di
+          <a href="https://sinta.kemdikbud.go.id" target="_blank" rel="noopener">sinta.kemdikbud.go.id</a>
+          dengan kata kunci "HVSR", "mikroseismik", atau "microzonasi Indonesia".
+        </p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- CATATAN -->
+<div class="ref-note">
+  <i data-lucide="info"></i>
+  <div>
+    <strong>Tentang daftar ini</strong>
+    <p>
+      Daftar referensi di atas mencakup karya seminal (Nakamura, Kanai, SESAME)
+      yang menjadi fondasi metode, serta publikasi peer-reviewed untuk validasi
+      metodologi. Untuk skripsi, disarankan menambahkan 2-3 paper SINTA lokal
+      sesuai konteks penelitian.
+    </p>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% block title %}Panduan Pengguna{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span>Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}">Beranda</a>
+    <span>/</span>
+    <span>Panduan Pengguna</span>
+  </div>
+</div>
+
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">Dokumentasi</span>
+    <h1>Panduan Pengguna</h1>
+    <p>Pelajari cara menggunakan setiap modul VibraLens untuk pemantauan dan analisis getaran tanah.</p>
+  </div>
+</div>
+
+<div class="panduan-layout">
+  <!-- SIDEBAR NAV -->
+  <aside class="panduan-nav">
+    <div class="panduan-nav-title">Daftar Isi</div>
+    <a href="#mulai" class="panduan-nav-link active">Memulai</a>
+    <a href="#beranda" class="panduan-nav-link">Beranda</a>
+    <a href="#katalog" class="panduan-nav-link">Katalog Data</a>
+    <a href="#peta" class="panduan-nav-link">Peta & Jaringan</a>
+    <a href="#analisis" class="panduan-nav-link">Analisis Sinyal</a>
+    <a href="#monitoring" class="panduan-nav-link">Monitoring</a>
+    <a href="#event" class="panduan-nav-link">Event & Alarm</a>
+    <a href="#riwayat" class="panduan-nav-link">Riwayat & Ekspor</a>
+  </aside>
+
+  <!-- KONTEN -->
+  <main class="panduan-content">
+
+    <!-- MEMULAI -->
+    <section class="panduan-section" id="mulai">
+      <div class="panduan-section-head">
+        <i data-lucide="rocket"></i>
+        <h2>Memulai</h2>
+      </div>
+      <p>
+        VibraLens adalah sistem pemantauan getaran tanah berbasis IoT dengan
+        analisis <strong>Horizontal-to-Vertical Spectral Ratio (HVSR)</strong> untuk
+        microzonasi seismik. Sistem ini dikembangkan untuk kawasan Universitas Padjadjaran
+        Jatinangor.
+      </p>
+
+      <h3>Yang Anda Butuhkan</h3>
+      <ul class="panduan-list">
+        <li>Browser modern (Chrome, Firefox, Edge, Safari versi terbaru)</li>
+        <li>Koneksi internet (untuk fitur peta & data lingkungan satelit)</li>
+        <li>Resolusi minimal 1366×768 (desktop) atau mobile</li>
+      </ul>
+
+      <h3>Navigasi Utama</h3>
+      <p>
+        Semua modul bisa diakses dari <strong>menu drawer</strong> (klik ikon ☰ di kiri atas)
+        atau dari <strong>footer</strong> di bawah halaman.
+      </p>
+    </section>
+
+    <!-- BERANDA -->
+    <section class="panduan-section" id="beranda">
+      <div class="panduan-section-head">
+        <i data-lucide="house"></i>
+        <h2>Beranda</h2>
+      </div>
+      <p>Halaman utama menampilkan ringkasan sistem secara real-time:</p>
+
+      <div class="panduan-cards">
+        <div class="panduan-card">
+          <strong>Ringkasan Sistem</strong>
+          <span>Jumlah node aktif, PGV maksimum, dan update terakhir</span>
+        </div>
+        <div class="panduan-card">
+          <strong>Parameter HVSR</strong>
+          <span>Rata-rata f₀, A₀, dan K_g semua node + kurva HVSR</span>
+        </div>
+        <div class="panduan-card">
+          <strong>Fitur Tersedia</strong>
+          <span>Akses cepat ke 7 modul VibraLens</span>
+        </div>
+        <div class="panduan-card">
+          <strong>Alur Sistem</strong>
+          <span>Penjelasan tahapan dari sensor ke dashboard</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- KATALOG -->
+    <section class="panduan-section" id="katalog">
+      <div class="panduan-section-head">
+        <i data-lucide="database"></i>
+        <h2>Katalog Data</h2>
+      </div>
+      <p>
+        Katalog berisi daftar lengkap semua node VibraLens beserta metadata:
+        identitas alat, lokasi, data stream, dan informasi kepemilikan.
+      </p>
+
+      <h3>Cara Menggunakan</h3>
+      <ol class="panduan-list panduan-list-ol">
+        <li>Buka menu <strong>Katalog Data</strong></li>
+        <li>Gunakan <strong>search box</strong> untuk cari berdasarkan kode, nama, atau model</li>
+        <li>Filter by status: <strong>Aktif</strong>, <strong>Zona Aman</strong>, atau <strong>Zona Rawan</strong></li>
+        <li>Klik kartu node untuk melihat <strong>detail metadata lengkap</strong></li>
+      </ol>
+
+      <h3>Metadata yang Tersedia</h3>
+      <div class="panduan-cards">
+        <div class="panduan-card"><strong>Identitas Alat</strong><span>Model, serial number, jumlah kanal</span></div>
+        <div class="panduan-card"><strong>Lokasi</strong><span>Koordinat, elevasi, deskripsi</span></div>
+        <div class="panduan-card"><strong>Data Lingkungan</strong><span>Suhu, kelembaban, hujan (satelit)</span></div>
+        <div class="panduan-card"><strong>Kepemilikan</strong><span>Kode katalog, pemilik, lisensi</span></div>
+      </div>
+    </section>
+
+    <!-- PETA -->
+    <section class="panduan-section" id="peta">
+      <div class="panduan-section-head">
+        <i data-lucide="network"></i>
+        <h2>Peta & Jaringan</h2>
+      </div>
+      <p>Visualisasi lokasi semua node pada peta interaktif.</p>
+
+      <h3>Fitur</h3>
+      <ul class="panduan-list">
+        <li><strong>Zoom & pan</strong> — scroll untuk zoom, drag untuk pindah lokasi</li>
+        <li><strong>Filter status</strong> — tampilkan hanya node dengan status tertentu</li>
+        <li><strong>Klik marker</strong> — popup dengan informasi lengkap node</li>
+        <li><strong>Tombol "Lihat Metadata Lengkap"</strong> — arahkan ke halaman detail</li>
+      </ul>
+
+      <h3>Warna Marker</h3>
+      <div class="panduan-legend">
+        <div class="panduan-legend-item"><span class="dot ok"></span> Online — semua normal</div>
+        <div class="panduan-legend-item"><span class="dot warn"></span> Sinyal Lemah — PGV 0.5–1.0 mm/s</div>
+        <div class="panduan-legend-item"><span class="dot alert"></span> Alert — PGV &gt; 1.0 mm/s</div>
+        <div class="panduan-legend-item"><span class="dot offline"></span> Offline — tidak ada data &gt;60s</div>
+      </div>
+    </section>
+
+    <!-- ANALISIS -->
+    <section class="panduan-section" id="analisis">
+      <div class="panduan-section-head">
+        <i data-lucide="brain"></i>
+        <h2>Analisis Sinyal & AI</h2>
+      </div>
+      <p>
+        Modul inti VibraLens — jalankan analisis HVSR otomatis dari data waveform node.
+      </p>
+
+      <h3>Langkah Analisis</h3>
+      <ol class="panduan-list panduan-list-ol">
+        <li>Pilih <strong>node</strong> dari dropdown</li>
+        <li>Pilih <strong>durasi analisis</strong> (10/30/60 menit)</li>
+        <li>Klik <strong>Jalankan Analisis</strong></li>
+        <li>Tunggu proses (preprocessing → FFT → HVSR → AI)</li>
+        <li>Lihat hasil: kurva HVSR + parameter + interpretasi AI</li>
+      </ol>
+
+      <h3>Yang Anda Dapatkan</h3>
+      <div class="panduan-cards">
+        <div class="panduan-card"><strong>Kurva HVSR</strong><span>Rasio H/V dalam domain frekuensi</span></div>
+        <div class="panduan-card"><strong>f₀ (Hz)</strong><span>Frekuensi dominan tanah</span></div>
+        <div class="panduan-card"><strong>A₀</strong><span>Faktor amplifikasi</span></div>
+        <div class="panduan-card"><strong>K_g</strong><span>Indeks kerentanan Kanai</span></div>
+      </div>
+
+      <div class="panduan-note">
+        <i data-lucide="info"></i>
+        <p><strong>Catatan:</strong> Saat ini data waveform untuk analisis dihasilkan secara sintetis (dummy) yang menyerupai karakteristik HVSR target setiap node. Ketika sensor fisik terpasang, pipeline analisis akan otomatis menggunakan data real.</p>
+      </div>
+    </section>
+
+    <!-- MONITORING -->
+    <section class="panduan-section" id="monitoring">
+      <div class="panduan-section-head">
+        <i data-lucide="activity"></i>
+        <h2>Monitoring Real-Time</h2>
+      </div>
+      <p>
+        Dashboard live yang memperbarui data setiap 5 detik.
+      </p>
+
+      <h3>Isi Halaman</h3>
+      <ul class="panduan-list">
+        <li><strong>Status bar</strong> — LIVE indicator, jumlah node aktif, waktu update</li>
+        <li><strong>Grid kartu node</strong> — PGV terkini setiap node + f₀ & A₀</li>
+        <li><strong>Chart PGV agregat</strong> — tren 6 jam terakhir</li>
+      </ul>
+
+      <p>
+        Halaman ini otomatis refresh. Tombol <strong>Refresh</strong> di kanan atas
+        untuk manual update.
+      </p>
+    </section>
+
+    <!-- EVENT -->
+    <section class="panduan-section" id="event">
+      <div class="panduan-section-head">
+        <i data-lucide="siren"></i>
+        <h2>Event & Alarm</h2>
+      </div>
+      <p>
+        Log kejadian penting: alert, sinyal lemah, offline, dan koneksi kembali.
+      </p>
+
+      <h3>Filter</h3>
+      <ul class="panduan-list">
+        <li><strong>By Node</strong> — tampilkan event dari node tertentu</li>
+        <li><strong>By Tipe</strong> — Alert / Warn / Offline / Online</li>
+      </ul>
+
+      <h3>Summary Card</h3>
+      <p>
+        Di bagian atas ada 4 kartu yang menunjukkan total event per tipe
+        (Alert, Sinyal Lemah, Offline, Online).
+      </p>
+    </section>
+
+    <!-- RIWAYAT -->
+    <section class="panduan-section" id="riwayat">
+      <div class="panduan-section-head">
+        <i data-lucide="history"></i>
+        <h2>Riwayat & Ekspor</h2>
+      </div>
+      <p>
+        Telusuri data historis node berdasarkan rentang tanggal dan ekspor ke CSV.
+      </p>
+
+      <h3>Cara Ekspor</h3>
+      <ol class="panduan-list panduan-list-ol">
+        <li>Pilih <strong>node</strong></li>
+        <li>Tentukan <strong>rentang tanggal</strong> (opsional)</li>
+        <li>Klik <strong>Export CSV</strong></li>
+        <li>File CSV otomatis ter-download</li>
+      </ol>
+
+      <h3>Isi File CSV</h3>
+      <p>
+        Kolom: timestamp, node_id, PGV, PGA, frekuensi dominan, RMS,
+        3 kanal getaran, curah hujan, kelembaban, suhu, tekanan, status.
+      </p>
+    </section>
+
+    <!-- BUTUH BANTUAN -->
+    <section class="panduan-section panduan-cta">
+      <h2>Butuh bantuan lebih lanjut?</h2>
+      <p>Lihat glosarium istilah atau daftar referensi ilmiah.</p>
+      <div class="panduan-cta-actions">
+        <a href="{{ url_for('glosarium') }}" class="btn-primary">
+          <i data-lucide="book-marked"></i>
+          <span>Buka Glosarium</span>
+        </a>
+        <a href="{{ url_for('referensi') }}" class="btn-ghost-dark">
+          <i data-lucide="file-text"></i>
+          <span>Referensi</span>
+        </a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  // Smooth scroll untuk anchor
+  document.querySelectorAll('.panduan-nav-link').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(link.getAttribute('href'));
+      if (!target) return;
+
+      // Update active state
+      document.querySelectorAll('.panduan-nav-link').forEach(function(l) {
+        l.classList.remove('active');
+      });
+      link.classList.add('active');
+
+      // Smooth scroll
+      var offset = 100; // topbar height
+      var top = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    });
+  });
+
+  // Update active nav saat scroll
+  var sections = document.querySelectorAll('.panduan-section');
+  var navLinks = document.querySelectorAll('.panduan-nav-link');
+
+  function highlightNav() {
+    var scrollPos = window.scrollY + 150;
+    sections.forEach(function(section) {
+      if (!section.id) return;
+      var top = section.offsetTop;
+      var bottom = top + section.offsetHeight;
+      if (scrollPos >= top && scrollPos < bottom) {
+        navLinks.forEach(function(l) {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + section.id);
+        });
+      }
+    });
+  }
+
+  window.addEventListener('scroll', highlightNav, { passive: true });
+})();
+</script>
+{% endblock %}

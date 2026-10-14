@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.nama_id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="back">Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <span data-i18n="fitur.pengaturan">{{ meta.nama_id }}</span>
+  </div>
+</div>
+
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">System Configuration</span>
+    <h1>Pengaturan Sistem</h1>
+    <p>Informasi sistem, konfigurasi threshold, dan utilitas database.</p>
+  </div>
+</div>
+
+<div class="detail-grid">
+
+  <!-- INFO SISTEM -->
+  <section class="detail-panel">
+    <div class="detail-panel-head">
+      <i data-lucide="server"></i>
+      <h2>Info Sistem</h2>
+    </div>
+    <dl class="detail-list">
+      <div><dt>Versi</dt><dd>VibraLens v{{ info.version }}</dd></div>
+      <div><dt>Build</dt><dd>{{ info.build }}</dd></div>
+      <div><dt>Database</dt><dd class="mono">{{ info.db_path.split('/')[-1].split('\\')[-1] }}</dd></div>
+      <div><dt>Ukuran DB</dt><dd>{{ info.db_size_kb }} KB</dd></div>
+      <div><dt>Server Time</dt><dd class="mono">{{ info.server_time[:19] }}</dd></div>
+    </dl>
+  </section>
+
+  <!-- THRESHOLD -->
+  <section class="detail-panel">
+    <div class="detail-panel-head">
+      <i data-lucide="sliders-horizontal"></i>
+      <h2>Threshold Alarm</h2>
+    </div>
+    <p class="detail-note">
+      <i data-lucide="info"></i>
+      Nilai batas untuk menentukan status node & trigger log event.
+    </p>
+    <dl class="detail-list">
+      <div>
+        <dt>Sinyal Lemah (Warn)</dt>
+        <dd><span class="threshold-pill threshold-warn">PGV &gt; {{ info.thresholds.warn }} mm/s</span></dd>
+      </div>
+      <div>
+        <dt>Alert</dt>
+        <dd><span class="threshold-pill threshold-alert">PGV &gt; {{ info.thresholds.alert }} mm/s</span></dd>
+      </div>
+      <div>
+        <dt>Offline</dt>
+        <dd><span class="threshold-pill threshold-offline">&gt; {{ info.thresholds.offline_seconds }}s tanpa data</span></dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- DATABASE COUNTS -->
+  <section class="detail-panel detail-panel-wide">
+    <div class="detail-panel-head">
+      <i data-lucide="database"></i>
+      <h2>Isi Database</h2>
+    </div>
+    <div class="db-counts-grid">
+      <div class="db-count-card">
+        <i data-lucide="radio"></i>
+        <div class="db-count-value">{{ info.counts.nodes }}</div>
+        <div class="db-count-label">Nodes</div>
+      </div>
+      <div class="db-count-card">
+        <i data-lucide="activity"></i>
+        <div class="db-count-value">{{ info.counts.readings }}</div>
+        <div class="db-count-label">Readings</div>
+      </div>
+      <div class="db-count-card">
+        <i data-lucide="waves"></i>
+        <div class="db-count-value">{{ info.counts.hvsr }}</div>
+        <div class="db-count-label">Hasil HVSR</div>
+      </div>
+      <div class="db-count-card">
+        <i data-lucide="siren"></i>
+        <div class="db-count-value">{{ info.counts.events }}</div>
+        <div class="db-count-label">Events</div>
+      </div>
+      <div class="db-count-card">
+        <i data-lucide="satellite"></i>
+        <div class="db-count-value">{{ info.counts.env_data }}</div>
+        <div class="db-count-label">Env Data</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UTILITAS -->
+  <section class="detail-panel detail-panel-wide">
+    <div class="detail-panel-head">
+      <i data-lucide="wrench"></i>
+      <h2>Utilitas</h2>
+    </div>
+    <div class="util-actions">
+      <a href="{{ url_for('katalog') }}" class="util-card">
+        <i data-lucide="database"></i>
+        <strong>Buka Katalog</strong>
+        <span>Metadata lengkap semua node</span>
+      </a>
+      <a href="/api/stats" target="_blank" class="util-card">
+        <i data-lucide="file-json"></i>
+        <strong>API Stats</strong>
+        <span>Lihat ringkasan statistik (JSON)</span>
+      </a>
+      <a href="/api/nodes" target="_blank" class="util-card">
+        <i data-lucide="code"></i>
+        <strong>API Nodes</strong>
+        <span>Semua node + metadata (JSON)</span>
+      </a>
+      <a href="/api/events" target="_blank" class="util-card">
+        <i data-lucide="list"></i>
+        <strong>API Events</strong>
+        <span>Log kejadian (JSON)</span>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+{% endblock %}

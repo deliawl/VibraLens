@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Katalog Data{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<section class="katalog-hero">
+  <div class="katalog-hero-glow"></div>
+  <div class="katalog-hero-content">
+    <span class="section-eyebrow" data-i18n="katalog.eyebrow">Inventaris Instrumen</span>
+    <h1 data-i18n="katalog.title">Katalog Data Mikroseismik</h1>
+    <p data-i18n="katalog.sub">
+      Metadata lengkap semua node VibraLens: identitas alat, tipe sensor, format data,
+      dan informasi kepemilikan sesuai standar katalog ilmiah.
+    </p>
+
+    <div class="katalog-meta-strip">
+      <div class="katalog-meta-item">
+        <i data-lucide="radio"></i>
+        <strong>{{ nodes|length }}</strong>
+        <span data-i18n="katalog.meta.nodes">Node Terdaftar</span>
+      </div>
+      <div class="katalog-meta-item">
+        <i data-lucide="shield-check"></i>
+        <strong>CC BY-NC 4.0</strong>
+        <span data-i18n="katalog.meta.license">Lisensi</span>
+      </div>
+      <div class="katalog-meta-item">
+        <i data-lucide="graduation-cap"></i>
+        <strong>Unpad</strong>
+        <span data-i18n="katalog.meta.owner">Pemilik</span>
+      </div>
+      <div class="katalog-meta-item">
+        <i data-lucide="file-json"></i>
+        <strong>miniSEED</strong>
+        <span data-i18n="katalog.meta.format">Format</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KATALOG -->
+<section class="section">
+  <div class="katalog-toolbar">
+    <div class="search-inline">
+      <i data-lucide="search"></i>
+      <input type="text" id="katalogSearch"
+             placeholder="Cari berdasarkan kode, nama lokasi, atau model alat…"
+             data-i18n-placeholder="katalog.search.ph">
+    </div>
+    <div class="katalog-filter">
+      <button class="filter-btn active" data-filter="all" data-i18n="katalog.filter.all">Semua</button>
+      <button class="filter-btn" data-filter="aktif" data-i18n="katalog.filter.aktif">Aktif</button>
+      <button class="filter-btn" data-filter="aman" data-i18n="katalog.filter.aman">Zona Aman</button>
+      <button class="filter-btn" data-filter="rawan" data-i18n="katalog.filter.rawan">Zona Rawan</button>
+    </div>
+  </div>
+
+  <div class="katalog-grid" id="katalogGrid">
+    {% for n in nodes %}
+    <article class="katalog-card"
+             data-id="{{ n.id }}"
+             data-status="{{ n.instrumen.status }}"
+             data-zona="{{ n.hvsr.zona }}"
+             data-search="{{ n.kode }} {{ n.nama }} {{ n.instrumen.model }} {{ n.lokasi.deskripsi }}">
+      <div class="katalog-card-head">
+        <div class="katalog-badge-node">Node {{ n.id }}</div>
+        <span class="katalog-status status-{{ n.rt.status }}">
+          {{ n.rt.status|upper }}
+        </span>
+      </div>
+
+      <h3 class="katalog-card-title">{{ n.nama }}</h3>
+      <div class="katalog-card-code">{{ n.kode }}</div>
+
+      <dl class="katalog-card-meta">
+        <div class="katalog-meta-row">
+          <dt data-i18n="katalog.f.model">Model</dt>
+          <dd>{{ n.instrumen.model }}</dd>
+        </div>
+        <div class="katalog-meta-row">
+          <dt data-i18n="katalog.f.sn">Serial</dt>
+          <dd class="mono">{{ n.instrumen.serial_number }}</dd>
+        </div>
+        <div class="katalog-meta-row">
+          <dt data-i18n="katalog.f.kanal">Kanal</dt>
+          <dd>{{ n.instrumen.jumlah_kanal }}×  {{ n.instrumen.satuan }}</dd>
+        </div>
+        <div class="katalog-meta-row">
+          <dt data-i18n="katalog.f.rate">Sampling</dt>
+          <dd>{{ n.instrumen.sampling_rate }} Hz</dd>
+        </div>
+      </dl>
+
+      <div class="katalog-card-zona zona-{{ n.hvsr.zona }}">
+        <i data-lucide="alert-triangle"></i>
+        <span data-i18n="katalog.zona">Zona</span>: <strong>{{ n.hvsr.zona|upper }}</strong>
+      </div>
+
+      <div class="katalog-card-cta">
+        <a href="{{ url_for('katalog_detail', node_id=n.id) }}" class="katalog-btn">
+          <span data-i18n="katalog.detail">Lihat Metadata</span>
+          <i data-lucide="arrow-right"></i>
+        </a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="katalog-empty" id="katalogEmpty" hidden>
+    <i data-lucide="search-x"></i>
+    <p data-i18n="katalog.empty">Tidak ada node yang cocok dengan filter.</p>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    var searchInput = document.getElementById('katalogSearch');
+    var cards = Array.from(document.querySelectorAll('.katalog-card'));
+    var filterBtns = document.querySelectorAll('.filter-btn');
+    var emptyEl = document.getElementById('katalogEmpty');
+    var currentFilter = 'all';
+
+    function applyFilters() {
+      var q = (searchInput.value || '').toLowerCase().trim();
+      var shown = 0;
+
+      cards.forEach(function(card) {
+        var matchesSearch = !q || card.dataset.search.toLowerCase().includes(q);
+        var matchesFilter = true;
+
+        if (currentFilter === 'aktif') {
+          matchesFilter = card.dataset.status === 'aktif';
+        } else if (currentFilter === 'aman' || currentFilter === 'rawan') {
+          matchesFilter = card.dataset.zona === currentFilter;
+        }
+
+        var visible = matchesSearch && matchesFilter;
+        card.hidden = !visible;
+        if (visible) shown++;
+      });
+
+      emptyEl.hidden = shown > 0;
+    }
+
+    searchInput?.addEventListener('input', applyFilters);
+
+    filterBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        filterBtns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        applyFilters();
+      });
+    });
+  })();
+</script>
+{% endblock %}

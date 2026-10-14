@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.nama_id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="back">Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <span data-i18n="fitur.event">{{ meta.nama_id }}</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">Event Log · Alert System</span>
+    <h1>Event & Alarm</h1>
+    <p>Riwayat kejadian penting: alert, sinyal lemah, dan status koneksi node.</p>
+  </div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="event-summary">
+  <div class="event-summary-card event-alert">
+    <div class="event-summary-icon"><i data-lucide="siren"></i></div>
+    <div class="event-summary-value" id="sumAlert">{{ summary.alert }}</div>
+    <div class="event-summary-label">Alert</div>
+  </div>
+  <div class="event-summary-card event-warn">
+    <div class="event-summary-icon"><i data-lucide="alert-triangle"></i></div>
+    <div class="event-summary-value" id="sumWarn">{{ summary.warn }}</div>
+    <div class="event-summary-label">Sinyal Lemah</div>
+  </div>
+  <div class="event-summary-card event-offline">
+    <div class="event-summary-icon"><i data-lucide="wifi-off"></i></div>
+    <div class="event-summary-value" id="sumOffline">{{ summary.offline }}</div>
+    <div class="event-summary-label">Offline</div>
+  </div>
+  <div class="event-summary-card event-online">
+    <div class="event-summary-icon"><i data-lucide="wifi"></i></div>
+    <div class="event-summary-value" id="sumOnline">{{ summary.online }}</div>
+    <div class="event-summary-label">Online Kembali</div>
+  </div>
+</div>
+
+<!-- FILTER + LIST -->
+<div class="event-panel">
+  <div class="event-toolbar">
+    <div class="event-filter-group">
+      <label>Node</label>
+      <select id="filterNode" class="analisis-select">
+        <option value="">Semua Node</option>
+        {% for n in nodes %}
+        <option value="{{ n.id }}">{{ n.kode }} · {{ n.nama }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="event-filter-group">
+      <label>Tipe</label>
+      <select id="filterTipe" class="analisis-select">
+        <option value="">Semua Tipe</option>
+        <option value="alert">Alert</option>
+        <option value="warn">Sinyal Lemah</option>
+        <option value="offline">Offline</option>
+        <option value="online">Online</option>
+      </select>
+    </div>
+    <button id="applyFilter" class="btn-primary" type="button" style="margin-left:auto;">
+      <i data-lucide="filter"></i>
+      <span>Terapkan Filter</span>
+    </button>
+  </div>
+
+  <div id="eventList" class="event-list">
+    {% for e in events %}
+    <div class="event-item event-{{ e.tipe }}">
+      <div class="event-item-icon">
+        {% if e.tipe == 'alert' %}<i data-lucide="siren"></i>
+        {% elif e.tipe == 'warn' %}<i data-lucide="alert-triangle"></i>
+        {% elif e.tipe == 'offline' %}<i data-lucide="wifi-off"></i>
+        {% else %}<i data-lucide="wifi"></i>{% endif %}
+      </div>
+      <div class="event-item-body">
+        <div class="event-item-head">
+          <strong>Node {{ e.node_id }}{% if e.node_nama %} · {{ e.node_nama }}{% endif %}</strong>
+          <span class="event-badge event-badge-{{ e.tipe }}">{{ e.tipe|upper }}</span>
+        </div>
+        <div class="event-item-msg">{{ e.pesan or '—' }}</div>
+        {% if e.nilai is not none %}
+        <div class="event-item-val">Nilai: <code>{{ "%.2f"|format(e.nilai) }}</code></div>
+        {% endif %}
+      </div>
+      <div class="event-item-time">
+        <div>{{ e.timestamp[:19] }}</div>
+        {% if e.umur_detik is not none %}
+        <small>{{ e.umur_detik }}s lalu</small>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="event-empty">
+      <i data-lucide="inbox"></i>
+      <p>Belum ada event tercatat.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var btn = document.getElementById('applyFilter');
+  var selNode = document.getElementById('filterNode');
+  var selTipe = document.getElementById('filterTipe');
+  var listEl = document.getElementById('eventList');
+
+  if (!btn) return;
+
+  btn.addEventListener('click', function() {
+    var url = '/api/events/filter?';
+    if (selNode.value) url += 'node_id=' + selNode.value + '&';
+    if (selTipe.value) url += 'tipe=' + selTipe.value + '&';
+
+    btn.disabled = true;
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        // Update summary
+        document.getElementById('sumAlert').textContent = data.summary.alert;
+        document.getElementById('sumWarn').textContent = data.summary.warn;
+        document.getElementById('sumOffline').textContent = data.summary.offline;
+        document.getElementById('sumOnline').textContent = data.summary.online;
+
+        // Render list
+        if (!data.events.length) {
+          listEl.innerHTML = '<div class="event-empty"><i data-lucide="inbox"></i><p>Tidak ada event untuk filter ini.</p></div>';
+        } else {
+          listEl.innerHTML = data.events.map(function(e) {
+            var icon = e.tipe === 'alert' ? 'siren' :
+                       e.tipe === 'warn' ? 'alert-triangle' :
+                       e.tipe === 'offline' ? 'wifi-off' : 'wifi';
+            var val = (e.nilai !== null && e.nilai !== undefined)
+              ? '<div class="event-item-val">Nilai: <code>' + Number(e.nilai).toFixed(2) + '</code></div>'
+              : '';
+            return '<div class="event-item event-' + e.tipe + '">' +
+              '<div class="event-item-icon"><i data-lucide="' + icon + '"></i></div>' +
+              '<div class="event-item-body">' +
+                '<div class="event-item-head">' +
+                  '<strong>Node ' + e.node_id + (e.node_nama ? ' · ' + e.node_nama : '') + '</strong>' +
+                  '<span class="event-badge event-badge-' + e.tipe + '">' + e.tipe.toUpperCase() + '</span>' +
+                '</div>' +
+                '<div class="event-item-msg">' + (e.pesan || '—') + '</div>' +
+                val +
+              '</div>' +
+              '<div class="event-item-time">' +
+                '<div>' + (e.timestamp ? e.timestamp.substring(0, 19) : '—') + '</div>' +
+                (e.umur_detik !== null ? '<small>' + e.umur_detik + 's lalu</small>' : '') +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
+        if (window.renderIcons) window.renderIcons();
+      })
+      .finally(function() { btn.disabled = false; });
+  });
+})();
+</script>
+{% endblock %}

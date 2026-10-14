@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.nama_id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="back">Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <span data-i18n="fitur.{{ slug }}">{{ meta.nama_id }}</span>
+  </div>
+</div>
+
+<div class="placeholder-v2">
+  <div class="placeholder-badge">
+    <span class="pulse-dot"></span>
+    <span data-i18n="placeholder.dev">Dalam Pengembangan</span>
+  </div>
+
+  <div class="placeholder-ikon-lg">
+    <i data-lucide="{{ meta.ikon }}"></i>
+  </div>
+
+  <h1 class="placeholder-h1" data-i18n="fitur.{{ slug }}">{{ meta.nama_id }}</h1>
+
+  <p class="placeholder-desc" data-i18n="placeholder.text">
+    Halaman ini masih kosong — konten akan diisi pada tahap berikutnya.
+  </p>
+
+  <div class="placeholder-actions">
+    <a class="btn-primary" href="{{ url_for('beranda') }}">
+      <i data-lucide="house"></i>
+      <span data-i18n="placeholder.home">Kembali ke Beranda</span>
+    </a>
+    <a class="btn-ghost-dark" href="{{ url_for('katalog') }}">
+      <i data-lucide="database"></i>
+      <span data-i18n="placeholder.catalog">Buka Katalog Data</span>
+    </a>
+  </div>
+
+  <div class="placeholder-related">
+    <div class="placeholder-related-title" data-i18n="placeholder.related">Modul Lain yang Sudah Tersedia</div>
+    <div class="placeholder-related-grid">
+      <a href="{{ url_for('katalog') }}" class="placeholder-related-card">
+        <i data-lucide="database"></i>
+        <span data-i18n="fitur.katalog">Katalog Data</span>
+        <i data-lucide="arrow-right" class="arrow"></i>
+      </a>
+      <a href="{{ url_for('fitur_page', slug='peta') }}" class="placeholder-related-card">
+        <i data-lucide="network"></i>
+        <span data-i18n="fitur.peta">Peta & Jaringan</span>
+        <i data-lucide="arrow-right" class="arrow"></i>
+      </a>
+      <a href="{{ url_for('beranda') }}#hvsr" class="placeholder-related-card">
+        <i data-lucide="waves"></i>
+        <span data-i18n="hvsr.title">Parameter HVSR</span>
+        <i data-lucide="arrow-right" class="arrow"></i>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

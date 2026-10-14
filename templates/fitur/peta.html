@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.nama_id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="back">Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <span data-i18n="fitur.{{ slug }}">{{ meta.nama_id }}</span>
+  </div>
+</div>
+
+<div class="peta-toolbar">
+  <div class="peta-toolbar-left">
+    <div class="peta-filter">
+      <button class="peta-filter-btn active" data-filter="all" type="button">
+        <i data-lucide="layers"></i>
+        <span data-i18n="peta.filter.all">Semua</span>
+      </button>
+      <button class="peta-filter-btn" data-filter="ok" type="button">
+        <span class="dot ok"></span>
+        <span data-i18n="peta.filter.ok">Online</span>
+      </button>
+      <button class="peta-filter-btn" data-filter="warn" type="button">
+        <span class="dot warn"></span>
+        <span data-i18n="peta.filter.warn">Lemah</span>
+      </button>
+      <button class="peta-filter-btn" data-filter="alert" type="button">
+        <span class="dot alert"></span>
+        <span data-i18n="peta.filter.alert">Alert</span>
+      </button>
+      <button class="peta-filter-btn" data-filter="offline" type="button">
+        <span class="dot offline"></span>
+        <span data-i18n="peta.filter.offline">Offline</span>
+      </button>
+    </div>
+  </div>
+  <div class="peta-toolbar-right">
+    <div class="peta-legend-inline">
+      <span class="legend-item"><span class="dot ok"></span> {{ nodes|selectattr("rt.status","equalto","ok")|list|length }}</span>
+      <span class="legend-item"><span class="dot warn"></span> {{ nodes|selectattr("rt.status","equalto","warn")|list|length }}</span>
+      <span class="legend-item"><span class="dot alert"></span> {{ nodes|selectattr("rt.status","equalto","alert")|list|length }}</span>
+      <span class="legend-item"><span class="dot offline"></span> {{ nodes|selectattr("rt.status","equalto","offline")|list|length }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="peta-wrapper">
+  <div id="map"></div>
+  <div class="peta-info">
+    <div class="peta-info-row">
+      <span class="peta-info-label" data-i18n="peta.info.total">Total Node</span>
+      <span class="peta-info-value">{{ nodes|length }}</span>
+    </div>
+    <div class="peta-info-row">
+      <span class="peta-info-label" data-i18n="peta.info.active">Aktif</span>
+      <span class="peta-info-value" id="activeCount">—</span>
+    </div>
+    <div class="peta-info-row">
+      <span class="peta-info-label" data-i18n="peta.info.updated">Diperbarui</span>
+      <span class="peta-info-value" id="lastUpdate">—</span>
+    </div>
+  </div>
+</div>
+
+<div id="petaData" data-nodes='{{ nodes|tojson }}' hidden></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var dataEl = document.getElementById('petaData');
+  if (!dataEl) return;
+
+  var nodes;
+  try { nodes = JSON.parse(dataEl.getAttribute('data-nodes') || '[]'); }
+  catch (e) { return; }
+  if (!nodes.length) return;
+
+  var UNPAD = [-6.9234, 107.7690];
+  var map = L.map('map', {
+    center: UNPAD,
+    zoom: 15,
+    zoomControl: false,
+    attributionControl: true,
+  });
+
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.control.scale({ position: 'bottomright', imperial: false, metric: true }).addTo(map);
+
+  function getTileUrl() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return dark
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+      : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+  }
+  function getLabelUrl() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return dark
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+      : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
+  }
+
+  var ATTRIB = '© <a href="https://www.esri.com" target="_blank">Esri</a> · OpenStreetMap';
+  var tileBase = L.tileLayer(getTileUrl(), { attribution: ATTRIB, maxZoom: 16 }).addTo(map);
+  var tileLabel = L.tileLayer(getLabelUrl(), { maxZoom: 16, pane: 'overlayPane' }).addTo(map);
+
+  document.addEventListener('themechange', function() {
+    map.removeLayer(tileBase);
+    map.removeLayer(tileLabel);
+    tileBase = L.tileLayer(getTileUrl(), { attribution: ATTRIB, maxZoom: 16 }).addTo(map);
+    tileLabel = L.tileLayer(getLabelUrl(), { maxZoom: 16, pane: 'overlayPane' }).addTo(map);
+  });
+
+  var colorMap = {
+    ok:      '#22C55E',
+    warn:    '#F59E0B',
+    alert:   '#EF4444',
+    offline: '#64748B',
+  };
+  var statusLabel = {
+    ok:      'ONLINE',
+    warn:    'SINYAL LEMAH',
+    alert:   'ALERT',
+    offline: 'OFFLINE',
+  };
+  var zonaLabel = {
+    aman:    'AMAN',
+    sedang:  'SEDANG',
+    rawan:   'RAWAN',
+  };
+
+  function makeIcon(status) {
+    var color = colorMap[status] || colorMap.offline;
+    var pulse = (status !== 'offline')
+      ? '<div class="marker-pulse"></div>'
+      : '';
+    return L.divIcon({
+      className: '',
+      html: '<div class="marker-pin" style="--c:' + color + '">' +
+              '<div class="marker-dot"></div>' + pulse +
+            '</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -12],
+    });
+  }
+
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function makePopup(n) {
+    var color = colorMap[n.rt.status] || colorMap.offline;
+    var stat = statusLabel[n.rt.status] || 'UNKNOWN';
+    var pgv = (n.rt.pgv !== null && n.rt.pgv !== undefined)
+      ? n.rt.pgv.toFixed(2) + ' <small>mm/s</small>'
+      : '—';
+    var lat = n.lokasi.latitude.toFixed(4);
+    var lng = n.lokasi.longitude.toFixed(4);
+
+    return '' +
+      '<div class="popup">' +
+        '<div class="popup-head">' +
+          '<span class="popup-badge" style="--c:' + color + '">' + escapeHtml(n.id) + '</span>' +
+          '<div>' +
+            '<div class="popup-title">' + escapeHtml(n.nama) + '</div>' +
+            '<div class="popup-status" style="color:' + color + '">' + stat + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="popup-code"><i data-lucide="hash"></i> ' + escapeHtml(n.kode) + '</div>' +
+        '<div class="popup-grid">' +
+          '<div class="popup-cell"><span class="popup-label">PGV</span><span class="popup-val">' + pgv + '</span></div>' +
+          '<div class="popup-cell"><span class="popup-label">Kanal</span><span class="popup-val">' + n.instrumen.jumlah_kanal + '× ' + n.instrumen.satuan + '</span></div>' +
+          '<div class="popup-cell"><span class="popup-label">Model</span><span class="popup-val popup-val-sm">' + escapeHtml(n.instrumen.model) + '</span></div>' +
+          '<div class="popup-cell"><span class="popup-label">Sampling</span><span class="popup-val">' + n.instrumen.sampling_rate + ' Hz</span></div>' +
+        '</div>' +
+        '<div class="popup-meta-section">' +
+          '<div class="popup-meta-title"><span>HVSR</span><span class="zona-badge zona-' + n.hvsr.zona + '">' + zonaLabel[n.hvsr.zona] + '</span></div>' +
+          '<div class="popup-grid popup-grid-3">' +
+            '<div class="popup-cell"><span class="popup-label">f₀</span><span class="popup-val">' + n.hvsr.f0.toFixed(2) + '<small>Hz</small></span></div>' +
+            '<div class="popup-cell"><span class="popup-label">A₀</span><span class="popup-val">' + n.hvsr.a0.toFixed(2) + '<small>×</small></span></div>' +
+            '<div class="popup-cell"><span class="popup-label">K_g</span><span class="popup-val">' + n.hvsr.kg.toFixed(2) + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="popup-meta-section">' +
+          '<div class="popup-meta-title"><span>Kepemilikan</span></div>' +
+          '<div class="popup-owner">' +
+            '<div class="popup-owner-row"><span class="popup-label">Pemilik</span><span class="popup-owner-val">' + escapeHtml(n.katalog.pemilik) + '</span></div>' +
+            '<div class="popup-owner-row"><span class="popup-label">Lisensi</span><span class="license-badge">' + escapeHtml(n.katalog.lisensi) + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="popup-coords">' +
+          '<i data-lucide="map-pin"></i> ' + lat + ', ' + lng + ' · ' + n.lokasi.elevasi + ' m dpl' +
+        '</div>' +
+        '<a class="popup-detail" href="/katalog/' + n.id + '">' +
+          '<span>Lihat Metadata Lengkap</span>' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>' +
+        '</a>' +
+      '</div>';
+  }
+
+  var markers = [];
+  var markerById = {};
+
+  nodes.forEach(function(n) {
+    var marker = L.marker(
+      [n.lokasi.latitude, n.lokasi.longitude],
+      { icon: makeIcon(n.rt.status) }
+    ).addTo(map);
+    marker.bindPopup(makePopup(n), {
+      maxWidth: 340,
+      minWidth: 300,
+      closeButton: true,
+      offset: [0, 0],
+      autoPanPadding: [50, 50],
+    });
+    markerById[n.id] = marker;
+    markers.push(marker);
+  });
+
+  var activeCount = nodes.filter(function(n) {
+    return n.rt.status !== 'offline';
+  }).length;
+  var acEl = document.getElementById('activeCount');
+  if (acEl) acEl.textContent = activeCount + ' / ' + nodes.length;
+
+  function updateLastUpdate() {
+    var now = new Date();
+    var t = now.toLocaleTimeString('id-ID', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    });
+    var el = document.getElementById('lastUpdate');
+    if (el) el.textContent = t;
+  }
+  updateLastUpdate();
+  setInterval(updateLastUpdate, 1000);
+
+  var group = L.featureGroup(markers);
+  map.fitBounds(group.getBounds().pad(0.2));
+
+  var filterBtns = document.querySelectorAll('.peta-filter-btn');
+  filterBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var filter = btn.dataset.filter;
+
+      markers.forEach(function(m, i) {
+        var n = nodes[i];
+        if (filter === 'all' || n.rt.status === filter) {
+          if (!map.hasLayer(m)) map.addLayer(m);
+        } else {
+          if (map.hasLayer(m)) map.removeLayer(m);
+        }
+      });
+    });
+  });
+
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.nama_id }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('beranda') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="back">Kembali ke Beranda</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <span data-i18n="fitur.monitoring">{{ meta.nama_id }}</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="analisis-hero">
+  <div class="analisis-hero-content">
+    <span class="section-eyebrow">Live Dashboard</span>
+    <h1>Monitoring Real-Time</h1>
+    <p>Pantau semua node secara langsung. Data diperbarui otomatis setiap 5 detik.</p>
+  </div>
+</div>
+
+<!-- LIVE STATUS BAR -->
+<div class="monitor-statusbar">
+  <div class="monitor-status-item">
+    <span class="live-dot"></span>
+    <span>LIVE</span>
+  </div>
+  <div class="monitor-status-item">
+    <i data-lucide="radio"></i>
+    <span><strong id="liveActive">—</strong> / <span id="liveTotal">—</span> node aktif</span>
+  </div>
+  <div class="monitor-status-item">
+    <i data-lucide="clock"></i>
+    <span>Update: <strong id="liveUpdated">—</strong></span>
+  </div>
+  <button id="refreshNow" class="btn-ghost-dark" type="button" style="margin-left:auto;">
+    <i data-lucide="refresh-cw"></i>
+    <span>Refresh</span>
+  </button>
+</div>
+
+<!-- NODE CARDS GRID -->
+<div class="monitor-grid" id="monitorGrid">
+  {% for n in nodes %}
+  <div class="monitor-card" data-node-id="{{ n.id }}">
+    <div class="monitor-card-head">
+      <span class="monitor-badge">Node {{ n.id }}</span>
+      <span class="katalog-status status-{{ n.rt.status }}">
+        {{ n.rt.status|upper }}
+      </span>
+    </div>
+    <div class="monitor-card-name">{{ n.nama }}</div>
+    <div class="monitor-card-code">{{ n.kode }}</div>
+
+    <div class="monitor-pgv-block">
+      <div class="monitor-pgv-label">PGV</div>
+      <div class="monitor-pgv-value">
+        {% if n.rt.pgv is not none %}
+          {{ "%.2f"|format(n.rt.pgv) }}<small>mm/s</small>
+        {% else %}—{% endif %}
+      </div>
+    </div>
+
+    <div class="monitor-card-footer">
+      <div class="monitor-meta">
+        <span>f₀</span>
+        <strong>{{ "%.2f"|format(n.hvsr.f0 or 0) }} Hz</strong>
+      </div>
+      <div class="monitor-meta">
+        <span>A₀</span>
+        <strong>{{ "%.2f"|format(n.hvsr.a0 or 0) }}×</strong>
+      </div>
+    </div>
+
+    <a href="{{ url_for('katalog_detail', node_id=n.id) }}" class="monitor-link">
+      Detail <i data-lucide="arrow-right"></i>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- LIVE CHART -->
+<section class="analisis-panel analisis-panel-wide" style="margin-top:24px;"
+         id="chartSection"
+         data-pgv='{{ stats.pgv_series|tojson }}'>
+  <div class="analisis-panel-head">
+    <i data-lucide="activity"></i>
+    <h2>PGV Agregat — 6 Jam Terakhir</h2>
+    <span class="panel-meta" id="chartMeta">auto-refresh 5s</span>
+  </div>
+  <div class="hvsr-chart-container">
+    <svg id="monitorChart" viewBox="0 0 800 240" preserveAspectRatio="none">
+      <polyline id="chartLine" fill="none" stroke="#F59E0B" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" points=""/>
+    </svg>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var grid = document.getElementById('monitorGrid');
+  var chartLine = document.getElementById('chartLine');
+  var chartSection = document.getElementById('chartSection');
+  var liveActive = document.getElementById('liveActive');
+  var liveTotal = document.getElementById('liveTotal');
+  var liveUpdated = document.getElementById('liveUpdated');
+  var refreshBtn = document.getElementById('refreshNow');
+
+  var REFRESH_MS = 5000;
+
+  function updateChart(series) {
+    if (!chartLine || !series || !series.length) return;
+    var W = 800, H = 240, padX = 20, padY = 20;
+    var max = Math.max.apply(null, series) * 1.15 || 1;
+    var min = 0;
+    var pts = [];
+    for (var i = 0; i < series.length; i++) {
+      var x = padX + (i / (series.length - 1)) * (W - padX * 2);
+      var y = H - padY - ((series[i] - min) / (max - min)) * (H - padY * 2);
+      pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+    }
+    chartLine.setAttribute('points', pts.join(' '));
+  }
+
+  function updateCards(nodes) {
+    var active = 0, total = nodes.length;
+    nodes.forEach(function(n) {
+      if (n.rt.status !== 'offline') active++;
+      var card = document.querySelector('.monitor-card[data-node-id="' + n.id + '"]');
+      if (!card) return;
+
+      var statusEl = card.querySelector('.katalog-status');
+      if (statusEl) {
+        statusEl.className = 'katalog-status status-' + n.rt.status;
+        statusEl.textContent = n.rt.status.toUpperCase();
+      }
+
+      var pgvEl = card.querySelector('.monitor-pgv-value');
+      if (pgvEl) {
+        if (n.rt.pgv !== null && n.rt.pgv !== undefined) {
+          pgvEl.innerHTML = n.rt.pgv.toFixed(2) + '<small>mm/s</small>';
+        } else {
+          pgvEl.innerHTML = '—';
+        }
+      }
+    });
+    if (liveActive) liveActive.textContent = active;
+    if (liveTotal) liveTotal.textContent = total;
+  }
+
+  function fetchNodes() {
+    fetch('/api/nodes')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var activeNodes = data.nodes.filter(function(n) { return n.aktif; });
+        updateCards(activeNodes);
+        if (liveUpdated) {
+          liveUpdated.textContent = new Date().toLocaleTimeString('id-ID');
+        }
+      })
+      .catch(function(err) { console.warn('fetch failed', err); });
+  }
+
+  function fetchStats() {
+    fetch('/api/stats')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        updateChart(data.pgv_series);
+      })
+      .catch(function(err) { console.warn('stats failed', err); });
+  }
+
+  function refreshAll() {
+    fetchNodes();
+    fetchStats();
+  }
+
+  // Initial — baca dari HTML attribute (hindari warning VS Code)
+  var initialSeries = [];
+  try {
+    if (chartSection) {
+      initialSeries = JSON.parse(chartSection.getAttribute('data-pgv') || '[]');
+    }
+  } catch (e) {
+    initialSeries = [];
+  }
+
+  updateChart(initialSeries);
+  if (liveUpdated) {
+    liveUpdated.textContent = new Date().toLocaleTimeString('id-ID');
+  }
+
+  // Auto refresh
+  setInterval(refreshAll, REFRESH_MS);
+  if (refreshBtn) refreshBtn.addEventListener('click', refreshAll);
+})();
+</script>
+{% endblock %}

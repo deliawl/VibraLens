@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}{{ node.kode }}{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+  <a class="back-btn" href="{{ url_for('katalog') }}">
+    <i data-lucide="arrow-left"></i>
+    <span data-i18n="katalog.back">Kembali ke Katalog</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="{{ url_for('beranda') }}" data-i18n="nav.home">Beranda</a>
+    <span>/</span>
+    <a href="{{ url_for('katalog') }}" data-i18n="katalog.eyebrow">Katalog Data</a>
+    <span>/</span>
+    <span>{{ node.kode }}</span>
+  </div>
+</div>
+
+<!-- HEADER NODE -->
+<div class="detail-hero">
+  <div class="detail-hero-left">
+    <div class="detail-node-badge">Node {{ node.id }}</div>
+    <h1>{{ node.nama }}</h1>
+    <div class="detail-subtitle">
+      <code>{{ node.kode }}</code>
+      <span class="katalog-status status-{{ node.rt.status }}">{{ node.rt.status|upper }}</span>
+    </div>
+  </div>
+  <div class="detail-hero-right">
+    <div class="detail-rt-block">
+      <span data-i18n="detail.rt.pgv">PGV saat ini</span>
+      <strong>
+        {% if node.rt.pgv is not none %}
+          {{ "%.2f"|format(node.rt.pgv) }}<small>mm/s</small>
+        {% else %}
+          —<small>mm/s</small>
+        {% endif %}
+      </strong>
+    </div>
+    <div class="detail-rt-block">
+      <span data-i18n="detail.rt.update">Update</span>
+      <strong>{{ node.rt.umur_detik }}<small>s</small></strong>
+    </div>
+  </div>
+</div>
+
+<!-- GRID METADATA -->
+<div class="detail-grid">
+
+  <!-- IDENTITAS ALAT -->
+  <section class="detail-panel">
+    <div class="detail-panel-head">
+      <i data-lucide="cpu"></i>
+      <h2 data-i18n="detail.identitas">Identitas Alat</h2>
+    </div>
+    <dl class="detail-list">
+      <div><dt data-i18n="detail.model">Model</dt><dd>{{ node.instrumen.model }}</dd></div>
+      <div><dt data-i18n="detail.manufaktur">Manufaktur</dt><dd>{{ node.instrumen.manufaktur }}</dd></div>
+      <div><dt data-i18n="detail.sn">Serial Number</dt><dd class="mono">{{ node.instrumen.serial_number }}</dd></div>
+      <div><dt data-i18n="detail.tipe">Tipe Sensor</dt><dd>{{ node.instrumen.tipe_sensor }}</dd></div>
+      <div><dt data-i18n="detail.kanal">Jumlah Kanal</dt><dd>{{ node.instrumen.jumlah_kanal }} kanal ({{ node.instrumen.satuan }})</dd></div>
+      <div><dt data-i18n="detail.rate">Sampling Rate</dt><dd>{{ node.instrumen.sampling_rate }} Hz</dd></div>
+      <div><dt data-i18n="detail.frek">Frekuensi Kerja</dt><dd>{{ node.instrumen.frekuensi_kerja }}</dd></div>
+      <div><dt data-i18n="detail.instalasi">Tanggal Instalasi</dt><dd>{{ node.instrumen.tanggal_instalasi }}</dd></div>
+      <div><dt data-i18n="detail.kalibrasi">Kalibrasi Terakhir</dt><dd>{{ node.instrumen.kalibrasi_terakhir }}</dd></div>
+      <div><dt data-i18n="detail.status">Status</dt><dd>{{ node.instrumen.status|capitalize }}</dd></div>
+    </dl>
+  </section>
+
+  <!-- LOKASI -->
+  <section class="detail-panel">
+    <div class="detail-panel-head">
+      <i data-lucide="map-pin"></i>
+      <h2 data-i18n="detail.lokasi">Lokasi</h2>
+    </div>
+    <dl class="detail-list">
+      <div><dt data-i18n="detail.lat">Latitude</dt><dd class="mono">{{ node.lokasi.latitude }}</dd></div>
+      <div><dt data-i18n="detail.lon">Longitude</dt><dd class="mono">{{ node.lokasi.longitude }}</dd></div>
+      <div><dt data-i18n="detail.elev">Elevasi</dt><dd>{{ node.lokasi.elevasi }} m dpl</dd></div>
+      <div><dt data-i18n="detail.desc">Deskripsi</dt><dd>{{ node.lokasi.deskripsi }}</dd></div>
+      <div><dt data-i18n="detail.kawasan">Kawasan</dt><dd>{{ node.lokasi.kawasan }}</dd></div>
+    </dl>
+
+    <div class="detail-mini-map"
+         id="detailMap"
+         data-lat="{{ node.lokasi.latitude }}"
+         data-lng="{{ node.lokasi.longitude }}"
+         data-name="{{ node.nama }}"></div>
+  </section>
+
+  <!-- DATA LINGKUNGAN (SATELIT NASA POWER) -->
+  <section class="detail-panel">
+    <div class="detail-panel-head">
+      <i data-lucide="satellite"></i>
+      <h2>Data Lingkungan</h2>
+    </div>
+
+    <p class="detail-note">
+      <i data-lucide="info"></i>
+      Data dari citra satelit NASA POWER.
+    </p>
+
+    {% if node.env %}
+    <dl class="detail-list">
+      <div>
+        <dt>Suhu Udara</dt>
+        <dd>{{ node.env.suhu if node.env.suhu is not none else '—' }} °C</dd>
+      </div>
+      <div>
+        <dt>Kelembaban Relatif</dt>
+        <dd>{{ node.env.kelembaban if node.env.kelembaban is not none else '—' }} %</dd>
+      </div>
+      <div>
+        <dt>Curah Hujan</dt>
+        <dd>{{ node.env.curah_hujan if node.env.curah_hujan is not none else '—' }} mm</dd>
+      </div>
+      <div>
+        <dt>Tekanan Udara</dt>
+        <dd>{{ node.env.tekanan if node.env.tekanan is not none else '—' }} kPa</dd>
+      </div>
+      <div>
+        <dt>Sumber Data</dt>
+        <dd>
+          <span class="source-badge">
+            <i data-lucide="satellite"></i> {{ node.env.sumber }}
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt>Update Terakhir</dt>
+        <dd class="mono">{{ node.env.timestamp[:16] if node.env.timestamp else '—' }}</dd>
+      </div>
+    </dl>
+    {% else %}
+    <p class="detail-empty">Data lingkungan belum tersedia.</p>
+    {% endif %}
+  </section>
+
+  <!-- DATA & STREAM -->
+  <section class="detail-panel">
+    <div class="detail-panel-head">
+      <i data-lucide="database"></i>
+      <h2 data-i18n="detail.data">Data & Stream</h2>
+    </div>
+    <dl class="detail-list">
+      <div><dt data-i18n="detail.format">Format Data</dt><dd>{{ node.data.format }}</dd></div>
+      <div class="detail-endpoint-row">
+        <dt data-i18n="detail.endpoint">Stream Endpoint</dt>
+        <dd>
+          <code class="endpoint-code">{{ node.data.stream_endpoint }}</code>
+          <button class="copy-btn"
+                  type="button"
+                  data-copy="{{ node.data.stream_endpoint }}"
+                  aria-label="Salin endpoint">
+            <i data-lucide="copy"></i>
+          </button>
+        </dd>
+      </div>
+      <div><dt data-i18n="detail.interval">Interval Kirim</dt><dd>{{ node.data.interval_kirim }} detik</dd></div>
+      <div><dt data-i18n="detail.buffer">Buffer Window</dt><dd>{{ node.data.buffer_window }} detik</dd></div>
+      <div><dt data-i18n="detail.bit">Resolusi Bit</dt><dd>{{ node.data.resolusi_bit }}-bit</dd></div>
+      <div><dt data-i18n="detail.enkripsi">Enkripsi</dt><dd>{{ node.data.enkripsi }}</dd></div>
+    </dl>
+  </section>
+
+  <!-- KATALOG & KEPEMILIKAN -->
+  <section class="detail-panel detail-panel-wide">
+    <div class="detail-panel-head">
+      <i data-lucide="shield-check"></i>
+      <h2 data-i18n="detail.ownership">Katalog & Kepemilikan</h2>
+    </div>
+    <dl class="detail-list detail-list-2col">
+      <div><dt data-i18n="detail.kodeKatalog">Kode Katalog</dt><dd class="mono">{{ node.katalog.kode_katalog }}</dd></div>
+      <div><dt data-i18n="detail.pemilik">Pemilik</dt><dd>{{ node.katalog.pemilik }}</dd></div>
+      <div><dt data-i18n="detail.pj">Penanggung Jawab</dt><dd>{{ node.katalog.penanggung_jawab }}</dd></div>
+      <div><dt data-i18n="detail.kontak">Kontak</dt><dd>{{ node.katalog.kontak }}</dd></div>
+      <div><dt data-i18n="detail.lisensi">Lisensi</dt><dd><span class="license-badge">{{ node.katalog.lisensi }}</span></dd></div>
+      <div><dt data-i18n="detail.versi">Versi Data</dt><dd>{{ node.katalog.versi }}</dd></div>
+      <div><dt data-i18n="detail.tglDibuat">Tanggal Dibuat</dt><dd>{{ node.katalog.tgl_dibuat }}</dd></div>
+      <div><dt data-i18n="detail.bahasa">Bahasa</dt><dd>{{ node.katalog.bahasa }}</dd></div>
+    </dl>
+  </section>
+
+  <!-- HVSR -->
+  <section class="detail-panel detail-panel-wide">
+    <div class="detail-panel-head">
+      <i data-lucide="waves"></i>
+      <h2 data-i18n="detail.hvsr">Parameter HVSR</h2>
+    </div>
+    <div class="hvsr-mini-grid">
+      <div class="hvsr-mini">
+        <div class="hvsr-mini-sym">f₀</div>
+        <div class="hvsr-mini-val">{{ "%.2f"|format(node.hvsr.f0) }}<small>Hz</small></div>
+      </div>
+      <div class="hvsr-mini">
+        <div class="hvsr-mini-sym">A₀</div>
+        <div class="hvsr-mini-val">{{ "%.2f"|format(node.hvsr.a0) }}<small>×</small></div>
+      </div>
+      <div class="hvsr-mini">
+        <div class="hvsr-mini-sym">K_g</div>
+        <div class="hvsr-mini-val">{{ "%.2f"|format(node.hvsr.kg) }}<small>1/Hz</small></div>
+      </div>
+      <div class="hvsr-mini">
+        <div class="hvsr-mini-sym">Zona</div>
+        <div class="hvsr-mini-val">
+          <span class="zona-badge zona-{{ node.hvsr.zona }}">{{ node.hvsr.zona|upper }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Copy button
+  document.querySelectorAll('.copy-btn[data-copy]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var text = btn.getAttribute('data-copy');
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          if (window.showToast) window.showToast('Endpoint disalin', 'success');
+        });
+      }
+    });
+  });
+
+  // Mini map
+  (function() {
+    var el = document.getElementById('detailMap');
+    if (!el || !window.L) return;
+
+    var lat = parseFloat(el.dataset.lat);
+    var lng = parseFloat(el.dataset.lng);
+    var name = el.dataset.name;
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    var map = L.map('detailMap', {
+      center: [lat, lng],
+      zoom: 16,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var tileUrl = isDark
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+      : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+
+    L.tileLayer(tileUrl, { maxZoom: 17 }).addTo(map);
+    L.marker([lat, lng]).addTo(map).bindPopup(name);
+
+    document.addEventListener('themechange', function() {
+      var d = document.documentElement.getAttribute('data-theme') === 'dark';
+      var newUrl = d
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+      map.eachLayer(function(layer) {
+        if (layer instanceof L.TileLayer) map.removeLayer(layer);
+      });
+      L.tileLayer(newUrl, { maxZoom: 17 }).addTo(map);
+    });
+  })();
+</script>
+{% endblock %}

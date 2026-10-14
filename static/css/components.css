@@ -1,0 +1,273 @@
+/* ============================================================
+   VIBRALENS · COMPONENTS — Buttons, Modal, Toast, Ripple, dll
+   ============================================================ */
+
+/* ============ BUTTONS ============ */
+.btn-primary {
+  background: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 100%);
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition);
+  box-shadow: 0 6px 20px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.3);
+  font-family: inherit;
+}
+.btn-primary:hover {
+  background: linear-gradient(180deg, #FCD34D 0%, var(--accent-bright) 100%);
+  box-shadow: 0 10px 28px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.4);
+  transform: translateY(-1px);
+}
+.btn-primary svg { width: 16px; height: 16px; transition: transform var(--transition); }
+.btn-primary:hover svg { transform: translateX(3px); }
+
+.btn-ghost {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.18);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition);
+  backdrop-filter: blur(10px);
+  font-family: inherit;
+}
+.btn-ghost:hover { background: rgba(255,255,255,.12); transform: translateY(-1px); }
+.btn-ghost svg { width: 16px; height: 16px; }
+.btn-ghost-light {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.25);
+}
+.btn-ghost-light:hover { background: rgba(255,255,255,.18); }
+
+/* ============ SEGMENTED ============ */
+.seg {
+  display: inline-flex;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 2px;
+}
+.seg button {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.seg button:hover:not(.active) { color: var(--text); }
+.seg button.active {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+.seg-full { width: 100%; }
+.seg-full button { flex: 1; text-align: center; }
+
+/* ============ ICON BUTTON ============ */
+.icon-btn {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all var(--transition);
+}
+.icon-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.icon-btn svg { width: 19px; height: 19px; }
+
+/* ============ USER BUTTON ============ */
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 5px 14px 5px 5px;
+  height: 42px;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+.user-btn:hover { border-color: var(--accent); }
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid; place-items: center;
+}
+.avatar svg { width: 16px; height: 16px; stroke-width: 2; }
+.user-name { font-size: 13px; font-weight: 600; }
+
+/* ============ PULSE DOT ============ */
+.pulse-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34,197,94,0.7);
+  animation: pulseDot 2s infinite;
+  flex-shrink: 0;
+  display: inline-block;
+}
+@keyframes pulseDot {
+  0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+  70%  { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+}
+
+/* ============ CHART LEGEND ============ */
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.chart-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.chart-legend-dash {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+/* ============ MODAL ============ */
+.modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal.open { display: flex; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-box {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  max-width: 560px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal.open .modal-box { animation: modalBoxIn 0.28s cubic-bezier(.2,.9,.2,1); }
+@keyframes modalBoxIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-head h3 { font-size: 16px; font-weight: 700; }
+.modal-body { padding: 20px; }
+.modal-body h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+.modal-body h4:first-child { margin-top: 0; }
+.modal-body p {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+/* ============ TOAST ============ */
+.toast-container {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 220px;
+  max-width: 360px;
+  pointer-events: auto;
+  animation: toastIn 0.3s cubic-bezier(.2,.9,.2,1);
+}
+.toast.hide { animation: toastOut 0.25s ease-out forwards; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes toastOut { to { opacity: 0; transform: translateX(40px); } }
+.toast-icon {
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.toast-icon svg { width: 18px; height: 18px; }
+.toast-success .toast-icon { color: var(--ok); }
+.toast-info    .toast-icon { color: var(--accent); }
+
+/* ============ RIPPLE ============ */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(245,158,11,0.3);
+  transform: scale(0);
+  animation: rippleAnim 0.6s ease-out;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 767px) {
+  .icon-btn { width: 38px; height: 38px; }
+  .user-btn { padding: 4px; height: 38px; }
+  .modal-box { border-radius: var(--radius); }
+  .toast-container { bottom: 16px; right: 16px; left: 16px; }
+  .toast { max-width: none; }
+}
