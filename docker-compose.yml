@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  vibralens:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vibralens:1.0.0
+    container_name: vibralens
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - TZ=Asia/Jakarta
+      - DB_DIR=/app/data
+      - FLASK_ENV=production
+    volumes:
+      - vibralens-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - vibralens-net
+
+volumes:
+  vibralens-data:
+    driver: local
+
+networks:
+  vibralens-net:
+    driver: bridge

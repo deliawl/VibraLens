@@ -233,6 +233,17 @@ def api_events():
     return jsonify({"events": q.get_events(node_id, limit)})
 
 
+@app.route("/api/events/filter")
+def api_events_filter():
+    node_id = request.args.get("node_id")
+    tipe = request.args.get("tipe")
+    limit = int(request.args.get("limit", 200))
+    return jsonify({
+        "events": q.get_events_extended(node_id, tipe, limit),
+        "summary": q.get_event_summary(),
+    })
+
+
 # ============================================================
 # API · Stats
 # ============================================================
@@ -257,17 +268,29 @@ def api_analysis(node_id):
 
 
 @app.route("/api/analysis/<node_id>/raw")
-@app.route("/api/events/filter")
-def api_events_filter():
-    node_id = request.args.get("node_id")
-    tipe = request.args.get("tipe")
-    limit = int(request.args.get("limit", 200))
+def api_analysis_raw(node_id):
+    """Ambil waveform mentah (untuk debug/visualisasi)."""
+    wf = q.get_waveform_for_node(node_id, duration=60)
+    if not wf:
+        return jsonify({"error": "Node tidak ditemukan"}), 404
+
+    # Downsample biar JSON nggak terlalu besar
+    step = max(1, len(wf["z"]) // 2000)
     return jsonify({
-        "events": q.get_events_extended(node_id, tipe, limit),
-        "summary": q.get_event_summary(),
+        "node_id": node_id,
+        "fs": wf["fs"],
+        "duration": wf["duration"],
+        "samples": len(wf["z"]),
+        "downsample": step,
+        "z": wf["z"][::step].tolist(),
+        "n": wf["n"][::step].tolist(),
+        "e": wf["e"][::step].tolist(),
     })
 
 
+# ============================================================
+# API · Readings Filter & Export
+# ============================================================
 @app.route("/api/readings/filter")
 def api_readings_filter():
     node_id = request.args.get("node_id")
@@ -322,25 +345,6 @@ def api_export_csv(node_id):
 @app.route("/api/system/info")
 def api_system_info():
     return jsonify(q.get_system_info())
-
-def api_analysis_raw(node_id):
-    """Ambil waveform mentah (untuk debug/visualisasi)."""
-    wf = q.get_waveform_for_node(node_id, duration=60)
-    if not wf:
-        return jsonify({"error": "Node tidak ditemukan"}), 404
-
-    # Downsample biar JSON nggak terlalu besar
-    step = max(1, len(wf["z"]) // 2000)
-    return jsonify({
-        "node_id": node_id,
-        "fs": wf["fs"],
-        "duration": wf["duration"],
-        "samples": len(wf["z"]),
-        "downsample": step,
-        "z": wf["z"][::step].tolist(),
-        "n": wf["n"][::step].tolist(),
-        "e": wf["e"][::step].tolist(),
-    })
 
 
 # ============================================================
